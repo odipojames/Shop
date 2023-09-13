@@ -40,7 +40,7 @@ import javax.swing.border.Border;
 
 
 public class LoginPage  implements ActionListener {
-       JLabel password1, label;
+       JLabel password1, label,footer;
        JTextField username;
        JButton button;
        JPasswordField Password;
@@ -96,6 +96,9 @@ public class LoginPage  implements ActionListener {
         button.setBackground(Color.BLACK);
         button.addActionListener((this));
         panel.add(button);
+        footer = new JLabel("© Copyright; 2023 OdipoJames");
+        footer.setBounds(550,530,200,25);
+        panel.add(footer);
         frame.setVisible(true);
         frame.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("store-icon.jpg")));
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

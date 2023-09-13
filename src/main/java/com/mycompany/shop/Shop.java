@@ -18,6 +18,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import javax.swing.table.JTableHeader;
+import java.awt.image.BufferedImage;
 
 
 
@@ -95,11 +97,11 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         JPanel addProductsPanel = new JPanel(new BorderLayout());
         JPanel salesReportPanel =  new JPanel();
         JTabbedPane tabs = new JTabbedPane();
+        //JLabel footer = new JLabel("© Copyright; 2023 OdipoJames");
         
         allProductViewPanel.setSize(1000, 500);
         //pn2.setSize(1000, 500);
         restockPanel.setSize(1000, 500);
-        tabs.setBounds(100, 100, 300, 300);
        
         
        
@@ -813,8 +815,9 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
          
         
         
-          
+        
         jm.add(tabs);
+       
         jm.setTitle("SHOP MANAGER");
         jm.setSize(1000, 600);
         jm.setLocationRelativeTo(null);
@@ -1155,7 +1158,7 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
 
         ResultSet rs =  st.executeQuery(sql);
        
-         int q2 =0 ;    
+        int q2 =0 ;    
        
         
         
@@ -1163,9 +1166,9 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         
         while(rs.next()){
              if(catTable.getRowCount()>0){
-        String id_k = rs.getString(2);
+        String id_k = rs.getString(1);//get id of product selected
         
-        for(int i= 0; i<catTable.getRowCount();i++){
+        for(int i= 0; i<catTable.getRowCount();i++){ //check quantity of prodects of same id in catTable and sum quantity
            if(catTable.getValueAt(i, 0).equals(id_k)){
              q2 = q2 + Integer.parseInt(catTable.getValueAt(i,3).toString());
            }
@@ -1187,6 +1190,9 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
                
               String[] row = {id,name,unit,quantity,total};
               model.addRow(row);
+         
+              
+             
               
              }
              
@@ -1197,6 +1203,8 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         
             
         }
+         
+         
          st.close();
          conn.close();
         
@@ -1398,8 +1406,13 @@ public void sellProduct(){
     }
     else{
     try{
-      Connection conn = getConnection();
-      System.out.println(catTable.getRowCount());
+        //confirm
+            JDialog.setDefaultLookAndFeelDecorated(true);
+            int response = JOptionPane.showConfirmDialog(null, "Do you want to sell products?", "Confirm",
+        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+     if(response==JOptionPane.YES_OPTION){
+        Connection conn = getConnection();
+      
       PreparedStatement insert = conn.prepareStatement("insert into sold_products (name,unit,quantity,total_ksh,sold_by)values(?,?,?,?,?)");
       for(int i =0;i<catTable.getRowCount();i++){
           insert.setString(1,model.getValueAt(i, 1).toString());
@@ -1424,13 +1437,24 @@ public void sellProduct(){
         
       }
       JOptionPane.showMessageDialog(this, "transaction succesful!");
+      //confirm reciept
+      JDialog.setDefaultLookAndFeelDecorated(true);
+      int response1 = JOptionPane.showConfirmDialog(null, "Do you want to print a Reciept?", "Confirm",
+        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+      if(response1==JOptionPane.YES_OPTION){
+      model.addRow(new Object[]{"", "", "","Sum Total", colSum(catTable,4), "",""});
+      printTable(catTable);
+      }
         conn.close();
         model.setRowCount(0);
         displayAllProductstable();
         allProductsTableShow();
       
+     }
     }
-  
+    
+    
+            
       catch(SQLException e){
        System.out.println(e.getMessage());
       }
@@ -1640,39 +1664,57 @@ public void restockProducts(){
  
   // Method to print the JTable
     private static void printTable(JTable table) {
-        try {
-            // Create a PrinterJob
-            PrinterJob job = PrinterJob.getPrinterJob();
+    try {
+        // Create a PrinterJob
+        PrinterJob job = PrinterJob.getPrinterJob();
 
-            // Set a printable object to handle the printing
-            job.setPrintable(new Printable() {
-                @Override
-                public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
-                    if (pageIndex > 0) {
-                        return Printable.NO_SUCH_PAGE;
-                    }
-
-                    Graphics2D g2d = (Graphics2D) graphics;
-                    g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
-
-                    // Print the JTable
-                    table.print(g2d);
-
-                    return Printable.PAGE_EXISTS;
+        // Set a printable object to handle the printing
+        job.setPrintable(new Printable() {
+            @Override
+            public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
+                if (pageIndex > 0) {
+                    return Printable.NO_SUCH_PAGE;
                 }
-            });
 
-            // Show the print dialog to choose printer settings
-            if (job.printDialog()) {
-                job.print();
+                Graphics2D g2d = (Graphics2D) graphics;
+                g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+
+                // Calculate the total width of the table
+                int tableWidth = table.getColumnModel().getTotalColumnWidth();
+                int tableHeight = table.getHeight();
+
+                // Calculate the scaling factor to fit the table within the page bounds
+                double scaleX = pageFormat.getImageableWidth() / tableWidth;
+                double scaleY = pageFormat.getImageableHeight() / tableHeight;
+                double scale = Math.min(scaleX, scaleY);
+
+                // Apply scaling to the graphics context
+                g2d.scale(scale, scale);
+
+                // Print table headers
+                JTableHeader header = table.getTableHeader();
+                header.paint(g2d);
+
+                // Translate the origin to below the headers
+                g2d.translate(0, header.getHeight());
+
+                // Print the JTable
+                table.paint(g2d);
+
+                return Printable.PAGE_EXISTS;
             }
-        } catch (PrinterException e) {
-            e.printStackTrace();
+        });
+
+        // Show the print dialog to choose printer settings
+        if (job.printDialog()) {
+            job.print();
         }
+    } catch (PrinterException e) {
+        e.printStackTrace();
     }
+}
 
-
-
+    
  // Export the JTable to an Excel file
     private static void exportTableToExcel(JTable table, String filePath) throws IOException {
         Workbook workbook = new XSSFWorkbook();
