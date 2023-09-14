@@ -1541,7 +1541,7 @@ public void restockProducts(){
         Statement st = conn.createStatement();
         String sql = "SELECT username FROM users WHERE username = '"+sname + "'";
         ResultSet result =  st.executeQuery(sql);
-        if(result.isBeforeFirst()){
+        if(result.next()){
         check = true;
         }
         st.close();
@@ -1770,7 +1770,7 @@ public void restockProducts(){
            try{
           Connection conn =  getConnection();
           Statement st = conn.createStatement();
-          String sql = "UPDATE users set username='"+editUserName.getText()+"', password='"+editUserPassword.getText()+"', role='"+editUserRole.getText()+"'  WHERE id ="+usersTable.getValueAt(usersTable.getSelectedRow(), 0);
+          String sql = "UPDATE users set username='"+editUserName.getText()+"', password='"+editUserPassword.getText()+"', role='"+editUserRole.getText()+"'  WHERE id ="+Integer.valueOf(usersTable.getValueAt(usersTable.getSelectedRow(), 0).toString());
           st.executeUpdate(sql);
           JOptionPane.showMessageDialog(this, "User Successfuly Updated!");
           editUserName.setText("");
@@ -1875,7 +1875,7 @@ private int colSum(JTable table, int n) {
          
          ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='"+seller+"' ");
          if(rs3.next()){
-         sql = "SELECT * FROM sold_products WHERE name='"+product+"' AND sold_by="+Integer.valueOf(sql);
+         sql = "SELECT * FROM sold_products WHERE name='"+product+"' AND sold_by="+Integer.valueOf(rs3.getString(1));
          }
         }
          
