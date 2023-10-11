@@ -19,7 +19,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import javax.swing.table.JTableHeader;
-import java.awt.image.BufferedImage;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.SwingUtilities;
+
 
 
 
@@ -46,7 +53,7 @@ JTable table1;
 JButton clearButton1;
 JTextField searchT1;
 JButton searchB1;
-JComboBox c1,c2,roleC,c3,c4;
+JComboBox c1,c2,roleC,c3,c4,c5,c6;
 JTable catTable;
 JTextField sumTexFld;
 JButton addB1;
@@ -65,16 +72,18 @@ JTextField editQuantity;
 JTextField editPrice;
 JButton saveB;
 JButton deleteB;
-JTable restockTable,usersTable,salesTable ;
+JTable restockTable,usersTable,salesTable,restockReportTable ;
 JButton restockB1;
-JButton addB2,createUserB,editUserB,processB;
+JButton addB2,createUserB,editUserB,processB,processB1;
 JTextField sumTexFld1,q2,p1,userName,editUserName,editUserRole,editUserPassword;
 JPasswordField passwordP;
-JCheckBox dateCheckBox;
+JCheckBox dateCheckBox,dateCheckBox1;
+
+private Map<String, Integer> inventory = new HashMap<>();
 
 
 JFrame  jm = new JFrame();
-JDatePickerImpl todatePicker,fromdatePicker;
+JDatePickerImpl todatePicker,fromdatePicker,todatePicker1,fromdatePicker1;
 public static boolean isAuthenticated = false;
 public static String logUser = "";
 public static String role = "";
@@ -107,7 +116,7 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
        
         //layouts
         GridLayout grid = new GridLayout(3,3,2,5);
-        GridLayout grid1 = new GridLayout(2,2,2,5);
+        //GridLayout grid1 = new GridLayout(2,2,2,5);
         
                 
         //add products panel
@@ -124,6 +133,27 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
                 searchT1.setText("");
             }
         });
+        
+        //auto detect changes in search text fields
+        searchT1.getDocument().addDocumentListener(new DocumentListener(){
+          
+           @Override
+           public void insertUpdate(DocumentEvent e) {
+               displaySearchedProductstable();
+           }
+
+           @Override
+           public void removeUpdate(DocumentEvent e) {
+               displaySearchedProductstable();
+           }
+
+           @Override
+           public void changedUpdate(DocumentEvent e) {
+               displaySearchedProductstable();
+           }
+          
+           }
+        );
 
         searchB1 = new JButton("search");
         searchB1.addActionListener((this));
@@ -324,6 +354,29 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
                 srchFld.setText("");
             }
         });
+         
+        //auto sersch when typing
+        srchFld.getDocument().addDocumentListener(new DocumentListener(){
+          
+           @Override
+           public void insertUpdate(DocumentEvent e) {
+               searchCrudProductsTable();
+           }
+
+           @Override
+           public void removeUpdate(DocumentEvent e) {
+               searchCrudProductsTable();
+           }
+
+           @Override
+           public void changedUpdate(DocumentEvent e) {
+               searchCrudProductsTable();
+           }
+          
+           }
+        );
+       
+         
         searchAllB = new JButton("search");
         searchAllB.setBounds(450, 350, 100, 20);
          allProductViewPanel.add(searchAllB);
@@ -662,8 +715,8 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         }
         
         
-        //sales report
-      
+        //sales report window
+       
          tabs.add("View Sales Report",salesReportPanel);   
          salesReportPanel.setLayout(null);
          
@@ -812,8 +865,160 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         
         
         
+        //restock report window
+         JPanel restockReportPanel = new JPanel();
+         tabs.add("View Restock History",restockReportPanel);   
+         restockReportPanel.setLayout(null);
          
+    
+        JPanel restockReportTablePanel =  new JPanel();
+        restockReportTablePanel.setFont(new Font("Serif", Font.PLAIN, 15));
+        restockReportTablePanel.setLayout(null);
+        restockReportTablePanel.setBackground(Color.white);
+        restockReportTablePanel.setBounds(30, 30, 900, 600);
+        restockReportPanel.add(restockReportTablePanel);
+        JLabel  restockL1 = new JLabel("Restocks");
+        restockL1.setBounds(30, 20, 100, 20);
+        restockReportTablePanel.add( restockL1);
+        restockL1.setForeground(Color.green);
+        restockL1.setFont(new Font("Serif", Font.PLAIN, 20));
         
+        processB1 = new JButton("Process");
+        processB1.setBounds(400, 20, 100, 20);
+        restockReportTablePanel.add(processB1);
+        processB1.setBackground(Color.BLUE);
+        processB1.setForeground(Color.white);
+        processB1.addActionListener((this));
+        
+        JButton printB1 = new JButton("Print");
+        printB1.setBounds(550, 20, 100, 20);
+        printB1.addActionListener(e -> printTable(restockReportTable));
+        restockReportTablePanel.add(printB1);
+        printB1.setBackground(Color.BLUE);
+        printB1.setForeground(Color.white);
+        
+        JButton clearB1 = new JButton("Export Exl");
+        clearB1.setBounds(700, 20, 100, 20);
+        clearB1.addActionListener(e -> {
+                try {
+                    exportTableToExcel(restockReportTable, filePathInDownloads);
+                    JOptionPane.showMessageDialog(jm, "Table exported to Excel successfully.\n chek in downloads");
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(jm, "Error exporting table to Excel: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+        restockReportTablePanel.add(clearB1);
+        clearB1.setBackground(Color.BLUE);
+        clearB1.setForeground(Color.white);
+        
+        JLabel fromLabel1 = new JLabel("From:");
+        fromLabel1.setBounds(30, 50, 100, 20);
+        restockReportTablePanel.add(fromLabel1);
+        fromLabel1.setForeground(Color.green);
+        fromLabel1.setFont(new Font("Serif", Font.PLAIN, 16));
+        
+        //date picker properties
+       
+        
+       UtilDateModel fromdatemodel1 = new UtilDateModel();
+       fromdatemodel1.setDate(Ldate.getYear(), Ldate.getMonthValue()-1, Ldate.getDayOfMonth());
+       fromdatemodel1.setSelected(true);
+       JDatePanelImpl datePanel2 = new JDatePanelImpl(fromdatemodel1,p);
+       fromdatePicker1 = new JDatePickerImpl(datePanel2, new DateLabelFormatter());
+       fromdatePicker1.setBounds(30, 70, 150, 20);
+       restockReportTablePanel.add(fromdatePicker1);
+        
+        
+        
+        JLabel toLabel1 = new JLabel("To:");
+        toLabel1.setBounds(210, 50, 100, 20);
+        restockReportTablePanel.add(toLabel1);
+        toLabel1.setForeground(Color.green);
+        toLabel1.setFont(new Font("Serif", Font.PLAIN, 16));
+        
+        UtilDateModel todatemodel1 = new UtilDateModel();
+        todatemodel1.setDate(Ldate.getYear(), Ldate.getMonthValue()-1, Ldate.getDayOfMonth());
+        todatemodel1.setSelected(true);
+        JDatePanelImpl datePanel3 = new JDatePanelImpl(todatemodel1,p);
+        todatePicker1 = new JDatePickerImpl(datePanel3, new DateLabelFormatter());
+        todatePicker1.setBounds(200, 70, 150, 20);
+        restockReportTablePanel.add(todatePicker1);
+        
+        
+        dateCheckBox1 = new JCheckBox("All Dates", false);  
+        dateCheckBox1.setBounds(380, 70, 100, 20);
+        dateCheckBox1.setForeground(Color.green);
+        dateCheckBox1.setFont(new Font("Serif", Font.PLAIN, 16));
+        restockReportTablePanel.add(dateCheckBox1);
+        
+        JLabel productsLabel1 = new JLabel("product");
+        productsLabel1.setBounds(500, 50, 100, 20);
+        restockReportTablePanel.add(productsLabel1);
+        productsLabel1.setForeground(Color.green);
+        productsLabel1.setFont(new Font("Serif", Font.PLAIN, 16));
+        
+        c5 = new JComboBox();
+        c5.addItem("ALL");
+        c5.setBounds(500, 70, 200, 20);
+        restockReportTablePanel.add(c5);
+        c5.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                filComb5();
+            }
+        });
+        
+        JLabel  restockerLabel = new JLabel("Restocker");
+        restockerLabel.setBounds(722, 50, 100, 20);
+        restockReportTablePanel.add(restockerLabel);
+        restockerLabel.setForeground(Color.green);
+        restockerLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+        
+        c6 = new JComboBox();
+        c6.addItem("ALL");
+        c6.setBounds(722, 70, 100, 20);
+        restockReportTablePanel.add(c6);
+        c6.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                filComb6();
+            }
+        });
+        
+        
+        
+        // restock table
+        DefaultTableModel  restockReportTableModel = new DefaultTableModel();
+         restockReportTableModel.addColumn("ID");
+         restockReportTableModel.addColumn("NAME");
+         restockReportTableModel.addColumn("UNIT");
+         restockReportTableModel.addColumn("QUANTITY");
+         restockReportTableModel.addColumn("Price");
+         restockReportTableModel.addColumn("RESTOCKED BY");
+         restockReportTableModel.addColumn("DATE");
+         restockReportTable = new JTable( restockReportTableModel);
+        //dissable cell from edditing
+        for (int c = 0; c <  restockReportTable .getColumnCount(); c++)
+        {
+            Class<?> col_class =  restockReportTable.getColumnClass(c);
+             restockReportTable.setDefaultEditor(col_class, null);        // remove editor
+        }
+        JScrollPane sp6 = new JScrollPane( restockReportTable);
+        sp6.setBounds(30, 100, 800, 400);
+        restockReportTablePanel.add(sp6);
+        
+        //reminders on low stok
+        Timer timer = new Timer();
+        int firstAlertDelay = 10 * 1000; // 10 seconds
+        int repeatAlertInterval = 5 * 60 * 1000; // 5 minutes
+
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                checkAndAlertLowStock();
+            }
+        }, firstAlertDelay, repeatAlertInterval);
         
         
         jm.add(tabs);
@@ -1100,7 +1305,7 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
      
     }         
      
-        //select sold products 
+        //select  product's  seller
         public void  filComb4(){
         c4.removeAllItems();
         
@@ -1130,7 +1335,64 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
       }
      
     }         
+    
+    //select restoced products 
+        public void  filComb5(){
+        c5.removeAllItems();
         
+      
+      try{
+        Connection conn = getConnection();
+        Statement st = conn.createStatement();
+        String sql = "SELECT DISTINCT  name FROM restocked_products";
+        ResultSet rs =  st.executeQuery(sql);
+        
+        while(rs.next()){
+            c5.addItem(rs.getString("name"));
+        }
+        
+        st.close();
+        conn.close();
+        c5.addItem("ALL");
+       
+      }
+      catch(Exception e){
+          System.out.print(e.getMessage());
+      }
+     
+    }         
+        
+        
+     //select products restocker
+        public void  filComb6(){
+        c6.removeAllItems();
+        
+      try{
+        Connection conn = getConnection();
+        Statement st = conn.createStatement();
+        String sql = "SELECT DISTINCT  restocked_by FROM restocked_products";
+        ResultSet rs =  st.executeQuery(sql);
+        
+        while(rs.next()){
+           
+            Statement st2 = conn.createStatement();
+            ResultSet rs2 = st2.executeQuery("SELECT * FROM users WHERE id="+rs.getString("restocked_by"));
+            if(rs2.next()){
+             c6.addItem(rs2.getString(2));
+            } 
+        }
+        
+        st.close();
+        conn.close();
+        c6.addItem("ALL");
+      
+       
+      }
+      catch(Exception e){
+          System.out.print(e.getMessage());
+      }
+     
+    }       
         
         
         //adding product to cat table
@@ -1336,9 +1598,9 @@ public void searchCrudProductsTable() {
     }
 
     try {
-        // Clear the table if any
+        // get table modeel
         DefaultTableModel dm = (DefaultTableModel) allProductsTable.getModel();
-        dm.setRowCount(0);
+        
 
         Connection conn = getConnection();
         String searchItem = srchFld.getText();
@@ -1358,6 +1620,8 @@ public void searchCrudProductsTable() {
         }
 
         if (rs.next()) {
+            //clear table first if search is found
+            dm.setRowCount(0);
             String id, name, unit, quantity, price, added_by, date;
             do {
                 id = rs.getString(1);
@@ -1925,6 +2189,187 @@ private int colSum(JTable table, int n) {
         
     } 
     
+ 
+ 
+ 
+ //restocking history/ report
+ public void restockTableReport(){
+         //clears table if any
+        DefaultTableModel dm = (DefaultTableModel) restockReportTable.getModel();
+        dm.setRowCount(0);
+        //date variables
+        String from = fromdatePicker1.getJFormattedTextField().getText();
+        String to  = todatePicker1.getJFormattedTextField().getText();
+        String product = c5.getSelectedItem().toString();
+        String seller = c6.getSelectedItem().toString();
+        try{
+        Connection conn = getConnection();
+        Statement st = conn.createStatement();
+        Statement st2 = conn.createStatement();
+        Statement st3 = conn.createStatement();
+       
+        
+        String sql = "SELECT * FROM restocked_products WHERE date >= '"+from+"' AND date <='"+to+"'";
+        if(!dateCheckBox1.isSelected() && product.equalsIgnoreCase("ALL")){
+        sql = "SELECT * FROM restocked_products WHERE date BETWEEN '"+from+"' AND '"+to+"' ";
+        }
+        
+        //all products sold by specific user between dates
+        if(!dateCheckBox1.isSelected() && product.equalsIgnoreCase("ALL") && !seller.equalsIgnoreCase("ALL"))
+        {
+         
+         ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='"+seller+"' ");
+         if(rs3.next()){
+         sql = "SELECT * FROM restocked_products WHERE restocked_by ="+Integer.valueOf(rs3.getString(1))+" AND date BETWEEN '"+from+"' AND '"+to+"' ";
+         }
+        }
+        
+        //specific products sold by specific user between dates
+         if(!dateCheckBox1.isSelected() && !product.equalsIgnoreCase("ALL") && !seller.equalsIgnoreCase("ALL"))
+        {
+         
+         ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='"+seller+"' ");
+         if(rs3.next()){
+         sql = "SELECT * FROM restocked_products WHERE name='"+product+"' AND restocked_by ="+Integer.valueOf(rs3.getString(1))+" AND date BETWEEN '"+from+"' AND '"+to+"' ";
+         }
+        }
+         
+       
+        
+        if(!dateCheckBox1.isSelected() && !product.equalsIgnoreCase("ALL") && seller.equalsIgnoreCase("ALL")){
+        sql = "SELECT * FROM restocked_products WHERE name ='"+product+"' AND date BETWEEN '"+from+"' AND '"+to+"' ";
+        }
+        
+         //all
+         //all products restocked by specific user:no time
+        if((dateCheckBox1.isSelected()) && (product.equalsIgnoreCase("ALL")) && (!seller.equalsIgnoreCase("ALL")))
+        {
+         
+         ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='"+seller+"' ");
+         if(rs3.next()){
+         sql = "SELECT * FROM restocked_products WHERE restocked_by="+Integer.valueOf(rs3.getString(1));
+         }
+        }
+        
+        //specific products sold by specific user:no time
+         if((dateCheckBox1.isSelected()) && (!product.equalsIgnoreCase("ALL")) && (!seller.equalsIgnoreCase("ALL")))
+        {
+         
+         ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='"+seller+"' ");
+         if(rs3.next()){
+         sql = "SELECT * FROM restocked_products WHERE name='"+product+"' AND restocked_by="+Integer.valueOf(rs3.getString(1));
+         }
+        }
+         
+        
+        if(dateCheckBox1.isSelected() && product.equalsIgnoreCase("ALL") && seller.equalsIgnoreCase("ALL")){
+         sql = "SELECT * FROM restocked_products ";//show all sales for all products
+        }
+        
+        if(dateCheckBox1.isSelected() && !product.equalsIgnoreCase("ALL") && seller.equalsIgnoreCase("ALL")){
+         sql = "SELECT * FROM restocked_products WHERE name = '"+product+"' ";//show all sales for a specific product
+        }
+        
+        ResultSet rs =  st.executeQuery(sql);
+        DefaultTableModel model = (DefaultTableModel) restockReportTable.getModel();
+        String id,name,unit,quantity,price,restocked_by,date;
+        while(rs.next()){
+               id=rs.getString(1);
+               name=rs.getString(2);
+               unit = rs.getString(3);
+               quantity = rs.getString(4);
+               price = rs.getString(5);
+               //find username of user foriegn key
+               ResultSet rs2 = st2.executeQuery("SELECT * FROM users WHERE id="+ Integer.valueOf(rs.getString(6)));
+              if(rs2.next()){
+              restocked_by = rs2.getString(2);
+              }
+              else{
+              restocked_by = rs.getString(6);
+              }
+               date = rs.getString(7);
+               String[] row = {id,name,unit,quantity,price,restocked_by,date};
+               model.addRow(row);  
+              
+        }
+        // model.addRow(new Object[]{"", "", "","Sum Total", colSum(salesTable,4), "",""});
+         st.close();
+         conn.close();
+        
+        
+       
+      }
+      catch(SQLException e){
+          System.out.print(e.getMessage());
+      }
+       
+       
+        
+    } 
+ 
+ 
+ //LOW Stock Reminders
+ 
+ //get all products with their quantity
+  public void loadInventoryFromDatabase() {
+        try {
+            Connection conn = getConnection();
+            Statement st = conn.createStatement();
+            String query = "SELECT name, quantity FROM products";
+            ResultSet resultSet = st.executeQuery(query);
+
+            while (resultSet.next()) {
+                String name = resultSet.getString("name");
+                int quantity = resultSet.getInt("quantity");
+                inventory.put(name, quantity);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+  
+  //check and alert low stock
+  public void checkAndAlertLowStock() {
+        loadInventoryFromDatabase();
+
+        for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
+            String name = entry.getKey();
+            int quantity = entry.getValue();
+            if (quantity < 10) {
+                alertLowStock(name, quantity);
+            }
+        }
+    }
+ //alert on low stosk
+  
+    public void alertLowStock(String productName, int currentQuantity) {
+        String message = "Low stock alert for " + productName + " (Quantity: " + currentQuantity + ")";
+        
+        // Create a custom dialog with a timeout to automatically close it after 4 seconds
+        JDialog dialog = new JDialog();
+        JPanel panel = new JPanel(new BorderLayout());
+        JLabel label = new JLabel(message);
+        panel.add(label, BorderLayout.CENTER);
+        dialog.getContentPane().add(panel);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setPreferredSize(new Dimension(300, 100));
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);  // Center the dialog
+        dialog.setTitle("Low Stock Alert");
+        dialog.setVisible(true);
+        
+        Timer dismissTimer = new Timer();
+        dismissTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                dialog.dispose();
+            }
+        }, 6000); // 6 seconds in milliseconds
+    }
+    
+
+
+ 
     
 
 
@@ -2135,6 +2580,10 @@ private int colSum(JTable table, int n) {
         salesTableReport();
      }
      
+     if(e.getSource()==processB1){
+         restockTableReport();
+    }
+     
      
     }
     
@@ -2148,7 +2597,9 @@ private int colSum(JTable table, int n) {
      
         new Shop();
        
-       }
+    }
+       
+       
        else{
            new LoginPage();
        }
