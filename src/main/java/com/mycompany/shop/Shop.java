@@ -2329,52 +2329,64 @@ private int colSum(JTable table, int n) {
     }
   
   //check and alert low stock
-  public void checkAndAlertLowStock() {
-        loadInventoryFromDatabase();
+public void checkAndAlertLowStock() {
+    loadInventoryFromDatabase();
+    
+    StringBuilder lowStockMessage = new StringBuilder("Low stock alert:\n");
 
-        for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
-            String name = entry.getKey();
-            int quantity = entry.getValue();
-            if (quantity < 10) {
-                alertLowStock(name, quantity);
-            }
+    for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
+        String name = entry.getKey();
+        int quantity = entry.getValue();
+        if (quantity < 10) {
+            lowStockMessage.append(name).append(" (Quantity: ").append(quantity).append(")\n");
         }
     }
- //alert on low stosk
-  
-    public void alertLowStock(String productName, int currentQuantity) {
-        String message = "Low stock alert for " + productName + " (Quantity: " + currentQuantity + ")";
-        
-        // Create a custom dialog with a timeout to automatically close it after 4 seconds
-        JDialog dialog = new JDialog();
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel label = new JLabel(message);
-        panel.add(label, BorderLayout.CENTER);
-        dialog.getContentPane().add(panel);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.setPreferredSize(new Dimension(300, 100));
-        dialog.pack();
-        dialog.setLocationRelativeTo(null);  // Center the dialog
-        dialog.setTitle("Low Stock Alert");
-        dialog.setVisible(true);
-        
-        Timer dismissTimer = new Timer();
-        dismissTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                dialog.dispose();
-            }
-        }, 6000); // 6 seconds in milliseconds
+
+    // Display a single dialog with information about all products with low stock
+    if (lowStockMessage.length() > 24) { // Check if the message contains more than "Low stock alert:\n"
+        alertLowStock(lowStockMessage.toString());
     }
+}  
+
+//alert on low stosk
+public void alertLowStock(String message) {
+    // Create a custom dialog with a timeout to automatically close it after 4 seconds
+    JDialog dialog = new JDialog();
+    JPanel panel = new JPanel(new BorderLayout());
+    JTextArea textArea = new JTextArea(message);
     
+    // Center-align the text within the JTextArea
+    textArea.setAlignmentX(Component.CENTER_ALIGNMENT);
+    textArea.setAlignmentY(Component.CENTER_ALIGNMENT);
+    
+    textArea.setWrapStyleWord(true);
+    textArea.setLineWrap(true);
+    textArea.setOpaque(false);
+    textArea.setEditable(false);
+    panel.add(textArea, BorderLayout.CENTER);
+    dialog.getContentPane().add(panel);
+    dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+    dialog.setPreferredSize(new Dimension(400, 200)); // Adjust dimensions as needed
+    dialog.pack();
+    dialog.setLocationRelativeTo(null);  // Center the dialog
+    dialog.setTitle("Low Stock Alert");
+    dialog.setVisible(true);
+
+    Timer dismissTimer = new Timer();
+    dismissTimer.schedule(new TimerTask() {
+        @Override
+        public void run() {
+            dialog.dispose();
+        }
+    }, 6000); // 6 seconds in milliseconds
+}
+
 
 
  
     
 
 
-    
-    
     
     
           //action listeners
