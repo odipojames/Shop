@@ -328,7 +328,8 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         allProductsTableModel.addColumn("Added By");
         allProductsTableModel.addColumn("Date Added");
         allProductsTable = new JTable(allProductsTableModel);
-        allProductsTable.setBounds(10, 50, 400, 200);
+       
+       
         //dissable cell from edditing
         for (int c = 0; c < allProductsTable.getColumnCount(); c++)
         {
@@ -337,7 +338,13 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         }
 	// Adding Jtable to JScrollPane
 	JScrollPane sp1 = new JScrollPane(allProductsTable);
-        sp1.setBounds(10, 40, 700, 300);
+         if(isAuthenticated && role.equalsIgnoreCase("admin")){
+            sp1.setBounds(10, 40, 700, 300);
+    }
+       if(isAuthenticated && role.equalsIgnoreCase("normal")){
+            sp1.setBounds(30, 40, 900, 300);
+    }
+        
         allProductViewPanel.add(sp1);
         loadAllB = new JButton("show all");
         loadAllB.setBounds(150, 350, 100, 20);
@@ -438,7 +445,9 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         allProductViewPanel1.setBounds(720, 30, 260, 380);
         Border blackline4 = BorderFactory.createTitledBorder("Edit Product");
         allProductViewPanel1.setBorder(blackline4);
+       if(isAuthenticated && role.equalsIgnoreCase("admin")){
         allProductViewPanel.add(allProductViewPanel1);
+       }
         
         
         
