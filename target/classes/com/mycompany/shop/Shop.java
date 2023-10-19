@@ -106,7 +106,7 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         JPanel addProductsPanel = new JPanel(new BorderLayout());
         JPanel salesReportPanel =  new JPanel();
         JTabbedPane tabs = new JTabbedPane();
-        //JLabel footer = new JLabel("© Copyright; 2023 OdipoJames");
+        JLabel footer = new JLabel("© Copyright; 2023 OdipoJames");
         
         allProductViewPanel.setSize(1000, 500);
         //pn2.setSize(1000, 500);
@@ -1029,6 +1029,7 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         //add icon;
         jm.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("store-icon.jpg")));
         jm.setVisible(true);
+        jm.add(footer,BorderLayout.SOUTH);
         jm.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         jm.addWindowListener(new WindowAdapter() {
     @Override
@@ -1410,6 +1411,11 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
           q1.requestFocusInWindow();
          
        }
+       else if(Integer.parseInt(q1.getText())<=0){
+          JOptionPane.showMessageDialog(null, "enter correct value of quantity","Error!", JOptionPane.ERROR_MESSAGE);
+          q1.requestFocusInWindow();
+         
+       }
           
        else{
         try{
@@ -1496,9 +1502,21 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
           q2.requestFocusInWindow();
          
        }
+        else if(Integer.parseInt(q2.getText())<=0){
+          JOptionPane.showMessageDialog(null, "enter correct quantity value","Error!", JOptionPane.ERROR_MESSAGE);
+          q2.requestFocusInWindow();
+         
+       }
+         
        
         else if(p1.getText().equals("")){
           JOptionPane.showMessageDialog(null, "enter price ","Error!", JOptionPane.ERROR_MESSAGE);
+          p1.requestFocusInWindow();
+         
+       }
+        
+       else if(Float.parseFloat(p1.getText())<=0){
+          JOptionPane.showMessageDialog(null, "enter correct price value ","Error!", JOptionPane.ERROR_MESSAGE);
           p1.requestFocusInWindow();
          
        }
@@ -2402,6 +2420,15 @@ public void alertLowStock(String message) {
                   ||productPrice.getText().equals("")) {
             JOptionPane.showMessageDialog(this, "Please enter all fields!","Error!", JOptionPane.ERROR_MESSAGE);
         }
+          else if (Integer.parseInt(productQuantity.getText())<= 0
+                  ) {
+            JOptionPane.showMessageDialog(this, "quantity must be more than zero!","Error!", JOptionPane.ERROR_MESSAGE);
+        }  
+          
+         else if (Float.parseFloat(productPrice.getText())<= 0
+                  ) {
+            JOptionPane.showMessageDialog(this, "price must be more than zero!","Error!", JOptionPane.ERROR_MESSAGE);
+        }    
           else if(searchByName(productName.getText())){//check if product exists
             JOptionPane.showMessageDialog(this, "Product with name "+" "+productName.getText()+"   already exists!","Error!", JOptionPane.ERROR_MESSAGE);
           }
@@ -2435,6 +2462,7 @@ public void alertLowStock(String message) {
           productPrice.setText("");
           
           displayAllProductstable();
+          allProductsTableShow();
           
           System.out.print("Database Connected");
           statement.close();
@@ -2555,6 +2583,8 @@ public void alertLowStock(String message) {
             st.executeUpdate(sql);
             JOptionPane.showMessageDialog(this, " "+name+" deleted ");
             allProductsTableShow();
+            displayAllProductstable();
+          
         }
                 
             
