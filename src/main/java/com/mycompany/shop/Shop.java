@@ -47,6 +47,7 @@ JTextField productName;
 JTextField productId;
 JTextField productUnit;
 JTextField productQuantity;
+JTextField minQuantity;
 JTextField productPrice;
 JButton displayButton1;
 JTable table1;
@@ -70,6 +71,7 @@ JTextField editName;
 JTextField editUnit;
 JTextField editQuantity;
 JTextField editPrice;
+JTextField editMinQ;
 JButton saveB;
 JButton deleteB;
 JTable restockTable,usersTable,salesTable,restockReportTable ;
@@ -188,17 +190,21 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         productId.addKeyListener(new JTextFieldKeyListener(productId));
         JLabel unitLabel = new JLabel("Unit");
         productUnit = new JTextField("kgs");
-        JLabel quantityLabel = new JLabel("Number of units");
+        JLabel quantityLabel = new JLabel("Quantity");
         productQuantity = new JTextField(10);
         productQuantity.addKeyListener(new JTextFieldKeyListener(productQuantity));
         JLabel priceLabel = new JLabel("Price");
         productPrice = new JTextField(10);
         productPrice.addKeyListener(new JFloatListener(productPrice));
+        JLabel minLabel = new JLabel("minimum quantity");
+        minQuantity = new JTextField(10);
+        minQuantity.addKeyListener(new JTextFieldKeyListener(minQuantity));
+        
         JLabel dammy = new JLabel("");
         addProdButton = new JButton("add product");
         addProdButton.addActionListener((this));
         pn2.add(nameLabel);pn2.add(productName);pn2.add(unitLabel);pn2.add(productUnit); pn2.add(quantityLabel);pn2.add(productQuantity);
-        pn2.add(priceLabel); pn2.add(productPrice);pn2.add(dammy); pn2.add(addProdButton);
+        pn2.add(priceLabel); pn2.add(productPrice);pn2.add(minLabel);pn2.add(minQuantity);pn2.add(dammy); pn2.add(addProdButton);
         
         
         
@@ -264,8 +270,10 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
                catTablemodel.removeRow(catTable.getSelectedRow());
                catSum();
                sumTexFld.setText(Integer.toString(catSum()));
-               System.out.println(isAuthenticated);
-                System.out.println(role);
+                if(!paidTexFld.getText().equals("") && catSum()>0 && catSum()< Integer.parseInt(paidTexFld.getText()) ){
+                    balanceTexFld.setText(Integer.toString(Integer.parseInt(paidTexFld.getText())-catSum()));
+                }
+               
             }
         }
         
@@ -278,6 +286,10 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         dtm.setRowCount(0);
         catSum();
         sumTexFld.setText(Integer.toString(catSum()));
+         //clear payment fields
+        sumTexFld.setText("");
+        balanceTexFld.setText("");
+        paidTexFld.setText("");
         }
         
         });
@@ -435,7 +447,16 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         editPrice.setBounds(10, 220, 220, 20);
         allProductViewPanel1.add( editPrice);
         editPrice.addKeyListener(new JTextFieldKeyListener(editPrice));
-        saveB.setBounds(10, 280, 220, 20);
+        
+        JLabel editMinQL = new JLabel("minimum quantity");
+        editMinQL .setBounds(60, 260, 220, 20);
+        allProductViewPanel1.add(editMinQL);
+        editMinQ = new JTextField(10);
+        editMinQ .setBounds(10, 280, 220, 20);
+        allProductViewPanel1.add( editMinQ );
+        editMinQ.addKeyListener(new JTextFieldKeyListener(editMinQ ));
+        
+        saveB.setBounds(10, 320, 220, 20);
         if(isAuthenticated && role.equalsIgnoreCase("admin")){
            allProductViewPanel1.add(saveB);
     }
@@ -1025,7 +1046,8 @@ String filePathInDownloads = downloadsPath + "\\" + fileName;
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                checkAndAlertLowStock();
+                //checkAndAlertLowStock();
+                loadInventoryFromDatabase();
             }
         }, firstAlertDelay, repeatAlertInterval);
         
@@ -1740,6 +1762,10 @@ public void sellProduct(){
         model.setRowCount(0);
         displayAllProductstable();
         allProductsTableShow();
+        //clear payment fields
+         sumTexFld.setText("");
+         balanceTexFld.setText("");
+         paidTexFld.setText("");
       
      }
     }
@@ -2338,43 +2364,40 @@ private int colSum(JTable table, int n) {
  //LOW Stock Reminders
  
  //get all products with their quantity
-  public void loadInventoryFromDatabase() {
+    public void loadInventoryFromDatabase() {
         try {
-            Connection conn = getConnection();
-            Statement st = conn.createStatement();
-            String query = "SELECT name, quantity FROM products";
+            Connection connection = getConnection();
+            Statement st = connection.createStatement();
+            String query = "SELECT name, quantity, min_quantity FROM products";
             ResultSet resultSet = st.executeQuery(query);
+            StringBuilder lowStockMessage = new StringBuilder("Low stock alert:\n");
 
             while (resultSet.next()) {
                 String name = resultSet.getString("name");
                 int quantity = resultSet.getInt("quantity");
+                int min_quantity = resultSet.getInt("min_quantity");
                 inventory.put(name, quantity);
+                checkAndAlertLowStock(name, quantity, min_quantity,lowStockMessage);
+                 // Display a single dialog with information about all products with low stock
+            if (lowStockMessage.length() > 17) { // Check if the message contains more than "Low stock alert:\n"
+                alertLowStock(lowStockMessage.toString());
+            }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-  
-  //check and alert low stock
-public void checkAndAlertLowStock() {
-    loadInventoryFromDatabase();
-    
-    StringBuilder lowStockMessage = new StringBuilder("Low stock alert:\n");
 
-    for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
-        String name = entry.getKey();
-        int quantity = entry.getValue();
-        if (quantity < 10) {
-            lowStockMessage.append(name).append(" (Quantity: ").append(quantity).append(")\n");
+    
+  
+//check and alert low stock
+    
+public void checkAndAlertLowStock(String productName, int quantity, int minQuantity, StringBuilder messageBuilder) {
+        if (quantity < minQuantity) {
+            messageBuilder.append(productName).append(" (Quantity: ").append(quantity).append(", Min Quantity: ").append(minQuantity).append("\n");
         }
     }
-
-    // Display a single dialog with information about all products with low stock
-    if (lowStockMessage.length() > 24) { // Check if the message contains more than "Low stock alert:\n"
-        alertLowStock(lowStockMessage.toString());
-    }
-}  
-
+ 
 //alert on low stosk
 public void alertLowStock(String message) {
     // Create a custom dialog with a timeout to automatically close it after 4 seconds
@@ -2448,18 +2471,20 @@ public void alertLowStock(String message) {
       String unit = productUnit.getText();
       int  quantity =Integer.parseInt(productQuantity.getText());
       float price = Float.parseFloat(productPrice.getText());
+      int minQ = Integer.parseInt(minQuantity.getText());
         
        
           try {  
          Connection conn =  getConnection();
          statement = conn.createStatement();
-         PreparedStatement insert = conn.prepareStatement("insert into products (name,unit,quantity,price,added_by)values(?,?,?,?,?)");
+         PreparedStatement insert = conn.prepareStatement("insert into products (name,unit,quantity,price,added_by,min_quantity)values(?,?,?,?,?,?)");
 //          insert.setInt(1,0);//auto gen in db
           insert.setString(1,name);
           insert.setString(2,unit);
           insert.setInt(3,quantity);
           insert.setFloat(4,price);
           insert.setInt(5,Integer.parseInt(userId));
+          insert.setInt(6,minQ);
           insert.executeUpdate();
           JOptionPane.showMessageDialog(this, "Product Successfuly Added");
           
@@ -2469,7 +2494,7 @@ public void alertLowStock(String message) {
           productUnit.setText("kgs");
           productQuantity.setText("");
           productPrice.setText("");
-          
+          minQuantity.setText("");
           displayAllProductstable();
           allProductsTableShow();
           
@@ -2535,6 +2560,23 @@ public void alertLowStock(String message) {
          editQuantity.setText(allProductsTable.getValueAt(allProductsTable.getSelectedRow(), 3).toString());
          editPrice.setText(allProductsTable.getValueAt(allProductsTable.getSelectedRow(), 4).toString());
          
+         //get min 
+         
+           try {
+            Connection connection = getConnection();
+            Statement st = connection.createStatement();
+            String query = "SELECT  min_quantity FROM products WHERE id="+ allProductsTable.getValueAt(allProductsTable.getSelectedRow(), 0);
+            ResultSet resultSet = st.executeQuery(query);
+
+            while (resultSet.next()) {
+                String minQ = resultSet.getString("min_quantity");
+                editMinQ.setText(minQ);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+         
+         
          }
     
      }
@@ -2549,17 +2591,23 @@ public void alertLowStock(String message) {
       else{
           try{
            int  quantity =Integer.parseInt(editQuantity.getText());
+           int  min_quantity =Integer.parseInt(editMinQ.getText());
            float price = Float.parseFloat(editPrice.getText());
            int id = Integer.parseInt(allProductsTable.getValueAt(allProductsTable.getSelectedRow(), 0).toString());   
            Connection conn =  getConnection();
-           String sql = "UPDATE products set name='"+editName.getText()+"', unit='"+editUnit.getText()+"', quantity="+quantity+",  price="+price+"  WHERE id ="+id;
+           String sql = "UPDATE products set name='"+editName.getText()+"', unit='"+editUnit.getText()+"', quantity="+quantity+",  price="+price+",min_quantity="+min_quantity+"  WHERE id ="+id;
            Statement st = conn.createStatement();
            st.executeUpdate(sql);
            editName.setText("");
            editUnit.setText("");
            editQuantity.setText("");
            editPrice.setText("");
+           editMinQ.setText("");
            allProductsTableShow();//reload the table
+           displayAllProductstable();
+        
+      
+       
            JOptionPane.showMessageDialog(this, "Product Updated Succesfuly");
           }
           catch(SQLException ex){
