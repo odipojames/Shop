@@ -54,7 +54,7 @@ public class LoginPage  implements ActionListener {
         panel.setLayout(null);
         panel.setBorder(blackline);
         frame = new JFrame();
-        frame.setTitle("LOGIN TO MY SHOP");
+        frame.setTitle("LOGIN TO ZION CLUB POS");
         
         
         
@@ -67,7 +67,7 @@ public class LoginPage  implements ActionListener {
         
         //pic
         JLabel imageLabel = new JLabel("image");
-        imageLabel.setIcon(new ImageIcon(this.getClass().getResource("store-icon.jpg"))); 
+        imageLabel.setIcon(new ImageIcon(this.getClass().getResource("login.jpg"))); 
         imageLabel.setBounds(30, 60, 480, 400);
         panel.add(imageLabel);
         
