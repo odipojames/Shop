@@ -8,10 +8,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.JTextField;
 
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import javax.swing.JTextField;
-
 /**
  *
  * @author odipojames12
@@ -31,12 +27,15 @@ public class JFloatListener extends KeyAdapter  {
       super.keyTyped(e);
       char c = e.getKeyChar();
       //float
-      if(!(Character.isDigit(c)||
-    (c==KeyEvent.VK_BACK_SPACE)||c==KeyEvent.VK_DELETE||e.getKeyChar() == '.')){
-//  evt.getKeyChar() == '.' does accept point when jtextfield accepts decimal number
-  e.consume();
-  
-}
+      // Allow digits, dot, and backspace
+                if (!(Character.isDigit(c) || c == '.' || c == KeyEvent.VK_BACK_SPACE)) {
+                    e.consume(); // Ignore the event
+                }
+
+                // Only allow one dot
+                if (c == '.' && textField.getText().contains(".")) {
+                    e.consume();
+                }
         
     
       

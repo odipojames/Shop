@@ -16,7 +16,6 @@ import org.jdatepicker.impl.*;
 import java.time.LocalDate;
 import java.awt.print.*;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -24,11 +23,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import javax.swing.table.JTableHeader;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -91,9 +85,9 @@ public class Shop extends JFrame implements ActionListener {
     JTable restockTable, usersTable, salesTable, restockReportTable;
     JButton restockB1;
     JButton addB2, createUserB, editUserB, processB, processB1;
-    JTextField sumTexFld1, q2, p1, Bp1,userName, editUserName, editUserRole, editUserPassword;
+    JTextField sumTexFld1, q2, p1,invoiceTextFld, Bp1,userName, editUserName, editUserRole, editUserPassword;
     JPasswordField passwordP;
-    JCheckBox dateCheckBox, dateCheckBox1;
+    JCheckBox dateCheckBox, dateCheckBox1,invoiceCheckBox1;
     JButton currentStockExpt, currentStock;
     private Map<String, Integer> inventory = new HashMap<>();
 
@@ -103,12 +97,8 @@ public class Shop extends JFrame implements ActionListener {
     public static String logUser = "";
     public static String role = "";
     public static String userId = "";
-
-    static String username = System.getProperty("user.name");
-    static String downloadsPath = "C:\\Users\\" + username + "\\Downloads";
-
-    static String fileName = "sales_report.xlsx"; // Replace with your desired file name
-    static String  filePathInDownloads = downloadsPath + "\\" + fileName;
+    String invoice_no ;
+    
 
     Shop() {
         JDialog.setDefaultLookAndFeelDecorated(true);
@@ -206,13 +196,13 @@ public class Shop extends JFrame implements ActionListener {
         productUnit = new JTextField("ML");
         JLabel quantityLabel = new JLabel("Quantity");
         productQuantity = new JTextField(10);
-        productQuantity.addKeyListener(new JTextFieldKeyListener(productQuantity));
+        productQuantity.addKeyListener(new JFloatListener(productQuantity));
         JLabel priceLabel = new JLabel("Price");
         productPrice = new JTextField(10);
         productPrice.addKeyListener(new JFloatListener(productPrice));
         JLabel minLabel = new JLabel("minimum quantity");
         minQuantity = new JTextField(10);
-        minQuantity.addKeyListener(new JTextFieldKeyListener(minQuantity));
+        minQuantity.addKeyListener(new JFloatListener(minQuantity));
 
         JLabel dammy = new JLabel("");
         addProdButton = new JButton("add product");
@@ -262,7 +252,7 @@ public class Shop extends JFrame implements ActionListener {
         addB1 = new JButton("add");
         addB1.addActionListener((this));
         q1 = new JTextField(5);
-        q1.addKeyListener(new JTextFieldKeyListener(q1));
+        q1.addKeyListener(new JFloatListener(q1));
         sellProductPanel1.add(c1);
         sellProductPanel1.add(lbQ);
         sellProductPanel1.add(q1);
@@ -306,9 +296,9 @@ public class Shop extends JFrame implements ActionListener {
                     // remove selected row from the model
                     catTablemodel.removeRow(catTable.getSelectedRow());
                     catSum();
-                    sumTexFld.setText(Integer.toString(catSum()));
-                    if (!paidTexFld.getText().equals("") && catSum() > 0 && catSum() < Integer.parseInt(paidTexFld.getText())) {
-                        balanceTexFld.setText(Integer.toString(Integer.parseInt(paidTexFld.getText()) - catSum()));
+                    sumTexFld.setText(Float.toString(catSum()));
+                    if (!paidTexFld.getText().equals("") && catSum() > 0 && catSum() < Float.parseFloat(paidTexFld.getText())) {
+                        balanceTexFld.setText(Float.toString(Float.parseFloat(paidTexFld.getText()) - catSum()));
                     }
 
                 }
@@ -322,7 +312,7 @@ public class Shop extends JFrame implements ActionListener {
                 DefaultTableModel dtm = (DefaultTableModel) catTable.getModel();
                 dtm.setRowCount(0);
                 catSum();
-                sumTexFld.setText(Integer.toString(catSum()));
+                sumTexFld.setText(Float.toString(catSum()));
                 //clear payment fields
                 sumTexFld.setText("");
                 balanceTexFld.setText("");
@@ -344,7 +334,7 @@ public class Shop extends JFrame implements ActionListener {
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (!paidTexFld.getText().equals("") && catSum() < Integer.parseInt(paidTexFld.getText())) {
-                    balanceTexFld.setText(Integer.toString(Integer.parseInt(paidTexFld.getText()) - catSum()));
+                    balanceTexFld.setText(Float.toString(Float.parseFloat(paidTexFld.getText()) - catSum()));
                 } else {
                     balanceTexFld.setText("0");
                 }
@@ -492,7 +482,7 @@ public class Shop extends JFrame implements ActionListener {
         editQuantity = new JTextField(10);
         editQuantity.setBounds(10, 160, 220, 20);
         allProductViewPanel1.add(editQuantity);
-        editQuantity.addKeyListener(new JTextFieldKeyListener(editQuantity));
+        editQuantity.addKeyListener(new JFloatListener(editQuantity));
 
         JLabel editPricel = new JLabel("price per unit");
         editPricel.setBounds(60, 200, 100, 20);
@@ -500,7 +490,7 @@ public class Shop extends JFrame implements ActionListener {
         editPrice = new JTextField(10);
         editPrice.setBounds(10, 220, 220, 20);
         allProductViewPanel1.add(editPrice);
-        editPrice.addKeyListener(new JTextFieldKeyListener(editPrice));
+        editPrice.addKeyListener(new JFloatListener(editPrice));
         
         
         JLabel editBPricel = new JLabel("buying price");
@@ -509,7 +499,7 @@ public class Shop extends JFrame implements ActionListener {
         editBuyingPrice = new JTextField(10);
         editBuyingPrice.setBounds(10, 280, 220, 20);
         allProductViewPanel1.add(editBuyingPrice);
-        editBuyingPrice.addKeyListener(new JTextFieldKeyListener(editBuyingPrice));
+        editBuyingPrice.addKeyListener(new JFloatListener(editBuyingPrice));
 
         JLabel editMinQL = new JLabel("minimum quantity");
         editMinQL.setBounds(60, 320, 220, 20);
@@ -517,7 +507,7 @@ public class Shop extends JFrame implements ActionListener {
         editMinQ = new JTextField(10);
         editMinQ.setBounds(10, 340, 220, 20);
         allProductViewPanel1.add(editMinQ);
-        editMinQ.addKeyListener(new JTextFieldKeyListener(editMinQ));
+        editMinQ.addKeyListener(new JFloatListener(editMinQ));
 
         saveB.setBounds(10, 380, 220, 20);
         if (isAuthenticated && role.equalsIgnoreCase("admin")) {
@@ -555,13 +545,13 @@ public class Shop extends JFrame implements ActionListener {
         addB2.addActionListener((this));
         JLabel q2label = new JLabel("quantity");
         q2 = new JTextField(10);
-        q2.addKeyListener(new JTextFieldKeyListener(q2));
+        q2.addKeyListener(new JFloatListener(q2));
         JLabel pricel1 = new JLabel("price per unit");
         p1 = new JTextField(10);
-        p1.addKeyListener(new JTextFieldKeyListener(p1));
+        p1.addKeyListener(new JFloatListener(p1));
         JLabel Bpricel1 = new JLabel(" Buying price");
         Bp1 = new JTextField(10);
-        Bp1.addKeyListener(new JTextFieldKeyListener(Bp1));
+        Bp1.addKeyListener(new JFloatListener(Bp1));
         restockPanel1.add(c2);
         restockPanel1.add(q2label);
         restockPanel1.add(q2);
@@ -584,6 +574,7 @@ public class Shop extends JFrame implements ActionListener {
         restockTablemodel.addColumn("Quantity");
         restockTablemodel.addColumn("Price per uinit Ksh");
         restockTablemodel.addColumn("Buying Price Ksh");
+        restockTablemodel.addColumn("Total Buying Price");
         restockTable = new JTable(restockTablemodel);
         restockTable.setBounds(40, 50, 300, 200);
          // Set the size of the second column (index 1)
@@ -610,7 +601,7 @@ public class Shop extends JFrame implements ActionListener {
                     // remove selected row from the model
                     restockTablemodel.removeRow(restockTable.getSelectedRow());
                     restockCatSum();
-                    sumTexFld1.setText(Integer.toString(restockCatSum()));
+                    sumTexFld1.setText(Float.toString(restockCatSum()));
                 }
             }
 
@@ -622,7 +613,7 @@ public class Shop extends JFrame implements ActionListener {
                 DefaultTableModel dtm = (DefaultTableModel) restockTable.getModel();
                 dtm.setRowCount(0);
                 restockCatSum();
-                sumTexFld1.setText(Integer.toString(restockCatSum()));
+                sumTexFld1.setText(Float.toString(restockCatSum()));
             }
 
         });
@@ -955,7 +946,7 @@ public class Shop extends JFrame implements ActionListener {
         restockReportTablePanel.setFont(new Font("Serif", Font.PLAIN, 15));
         restockReportTablePanel.setLayout(null);
         restockReportTablePanel.setBackground(Color.white);
-        restockReportTablePanel.setBounds(30, 30, 900, 600);
+        restockReportTablePanel.setBounds(30, 30, 1000, 600);
         restockReportPanel.add(restockReportTablePanel);
         JLabel restockL1 = new JLabel("Restocks");
         restockL1.setBounds(30, 20, 100, 20);
@@ -991,6 +982,13 @@ public class Shop extends JFrame implements ActionListener {
         restockReportTablePanel.add(clearB1);
         clearB1.setBackground(Color.BLUE);
         clearB1.setForeground(Color.white);
+        
+        
+        invoiceCheckBox1 = new JCheckBox("By invoice no", false);
+        invoiceCheckBox1.setBounds(850, 20, 120, 20);
+        invoiceCheckBox1.setBackground(Color.BLUE);
+        invoiceCheckBox1.setForeground(Color.white);
+        restockReportTablePanel.add(invoiceCheckBox1);
 
         JLabel fromLabel1 = new JLabel("From:");
         fromLabel1.setBounds(30, 50, 100, 20);
@@ -1060,6 +1058,9 @@ public class Shop extends JFrame implements ActionListener {
                 filComb6();
             }
         });
+        invoiceTextFld = new JTextField();
+        invoiceTextFld.setBounds(850, 70, 120, 20);
+        restockReportTablePanel.add(invoiceTextFld);
 
         // restock table
         DefaultTableModel restockReportTableModel = new DefaultTableModel();
@@ -1069,20 +1070,26 @@ public class Shop extends JFrame implements ActionListener {
         restockReportTableModel.addColumn("QUANTITY");
         restockReportTableModel.addColumn("Price");
         restockReportTableModel.addColumn("Buying Price");
+        restockReportTableModel.addColumn("Total Buying Price");
         restockReportTableModel.addColumn("RESTOCKER");
+        restockReportTableModel.addColumn("INVOICE NUMBER");
         restockReportTableModel.addColumn("DATE");
         restockReportTable = new JTable(restockReportTableModel);
         int columnIndex2 = 1;
         TableColumn column2 = restockReportTable.getColumnModel().getColumn(columnIndex2);
         column2.setPreferredWidth(180); // Set the preferred width in pixels
-
+        restockReportTable.getColumnModel().getColumn(5).setPreferredWidth(140);
+        restockReportTable.getColumnModel().getColumn(6).setPreferredWidth(140);
+        restockReportTable.getColumnModel().getColumn(7).setPreferredWidth(140);
+        restockReportTable.getColumnModel().getColumn(8).setPreferredWidth(140);
+        restockReportTable.getColumnModel().getColumn(9).setPreferredWidth(120);
         //dissable cell from edditing
         for (int c = 0; c < restockReportTable.getColumnCount(); c++) {
             Class<?> col_class = restockReportTable.getColumnClass(c);
             restockReportTable.setDefaultEditor(col_class, null);        // remove editor
         }
         JScrollPane sp6 = new JScrollPane(restockReportTable);
-        sp6.setBounds(30, 100, 800, 400);
+        sp6.setBounds(30, 100, 950, 400);
         restockReportTablePanel.add(sp6);
 
         //reminders on low stok
@@ -1101,7 +1108,7 @@ public class Shop extends JFrame implements ActionListener {
         jm.add(tabs);
 
         jm.setTitle("CLUB ZION POS");
-        jm.setSize(1000, 600);
+        jm.setSize(1100, 650);
         jm.setLocationRelativeTo(null);
         //add icon;
         jm.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("store-icon.jpg")));
@@ -1169,7 +1176,7 @@ public class Shop extends JFrame implements ActionListener {
             for (CSVRecord record : csvParser) {
                 String col1 = record.get("name");
                 String col2 = record.get("unit");
-                int col3 = Integer.parseInt(record.get("quantity"));
+                float col3 = Float.parseFloat(record.get("quantity"));
                 float col4 = Float.parseFloat(record.get("price"));
                 float col5 = Float.parseFloat(record.get("buying_price"));
 
@@ -1179,11 +1186,16 @@ public class Shop extends JFrame implements ActionListener {
                 PreparedStatement state = connection.prepareStatement(sql);
                 state.setString(1, col1);
                 state.setString(2, col2);
-                state.setInt(3, col3);
+                state.setFloat(3, col3);
                 state.setFloat(4, col4);
                 state.setFloat(5, col5);
-                state.setInt(6, 10);
+                state.setFloat(6, 10);
                 state.setInt(7, Integer.parseInt(userId));
+                //check if product name exists in db
+                if (searchByName(col1)) {//check if product exists
+                JOptionPane.showMessageDialog(this, "Product with name " + " " + col1 + "   already exists!", "Error!", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
                 state.executeUpdate();
             }
 
@@ -1239,21 +1251,21 @@ private void saveSampleCsv() {
     }
 
     //method to get sum on catTable
-    public int catSum() {
-        int sum = 0;
+    public float catSum() {
+        float sum = 0;
         int rowCount = catTable.getRowCount();
         for (int i = 0; i < rowCount; i++) {
-            sum = sum + Integer.parseInt(catTable.getValueAt(i, 4).toString());
+            sum = sum + Float.parseFloat(catTable.getValueAt(i, 4).toString());
         }
         return sum;
     }
 
     //method to get sum on catTable
-    public int restockCatSum() {
-        int sum = 0;
+    public float restockCatSum() {
+        float sum = 0;
         int rowCount = restockTable.getRowCount();
         for (int i = 0; i < rowCount; i++) {
-            sum = sum + Integer.parseInt(restockTable.getValueAt(i, 4).toString());
+            sum = sum + Float.parseFloat(restockTable.getValueAt(i, 6).toString());
         }
         return sum;
     }
@@ -1361,27 +1373,46 @@ private void saveSampleCsv() {
         }
     }
 
-    //method to search product already exists
-    public boolean searchByName(String sname) {
-        boolean check = false;
+  //method to search product already exists
+public boolean searchByName(String sname) {
+    boolean check = false;
 
-        try {
-            Connection conn = getConnection();
-            Statement st = conn.createStatement();
-            String sql = "SELECT name FROM products WHERE name = '" + sname + "'";
-            ResultSet result = st.executeQuery(sql);
-            if (result.next()) {
+    try {
+        Connection conn = getConnection();
+        Statement st = conn.createStatement();
+
+        // Convert the input to lowercase and remove all whitespace characters
+        String cleanedSname = sname.toLowerCase().replaceAll("\\s", "");
+
+        String sql = "SELECT name FROM products";
+        ResultSet result = st.executeQuery(sql);
+
+        while (result.next()) {
+            // Fetch each name from the result set
+            String dbName = result.getString("name");
+
+            // Convert the fetched name to lowercase and remove all whitespace characters
+            String cleanedDbName = dbName.toLowerCase().replaceAll("\\s", "");
+
+            // Compare the cleaned names
+            if (cleanedDbName.equals(cleanedSname)) {
                 check = true;
+                break;
             }
-            st.close();
-            conn.close();
-        } catch (Exception e) {
-            System.out.print(e.getMessage());
         }
 
-        return check;
-
+        st.close();
+        conn.close();
+    } catch (Exception e) {
+        System.out.print(e.getMessage());
     }
+
+    return check;
+}
+
+    
+
+
 
     //select products 
     public void filComb() {
@@ -1562,7 +1593,7 @@ private void saveSampleCsv() {
 
                 ResultSet rs = st.executeQuery(sql);
 
-                int q2 = 0;
+                float q2 = 0;
 
                 while (rs.next()) {
                     if (catTable.getRowCount() > 0) {
@@ -1570,20 +1601,20 @@ private void saveSampleCsv() {
 
                         for (int i = 0; i < catTable.getRowCount(); i++) { //check quantity of prodects of same id in catTable and sum quantity
                             if (catTable.getValueAt(i, 0).equals(id_k)) {
-                                q2 = q2 + Integer.parseInt(catTable.getValueAt(i, 3).toString());
+                                q2 = q2 + Float.parseFloat(catTable.getValueAt(i, 3).toString());
                             }
                         }
 
                     }
-                    if (Integer.parseInt(rs.getString(4)) < q2 + Integer.parseInt(q1.getText())) {
+                    if (Float.parseFloat(rs.getString(4)) < q2 + Float.parseFloat(q1.getText())) {
 
                         JOptionPane.showMessageDialog(null, "few of this product remaining in stok \n please check quantity remaining");
-                    } else if (Integer.parseInt(rs.getString(4)) >= q2) {
+                    } else if (Float.parseFloat(rs.getString(4)) >= q2) {
                         id = rs.getString(1);
                         name = rs.getString(2);
                         unit = rs.getString(3);
                         quantity = q1.getText();
-                        total = Integer.toString((int) (rs.getFloat(5) * Integer.parseInt(q1.getText())));
+                        total = Float.toString((float) (rs.getFloat(5) * Float.parseFloat(q1.getText())));
 
                         String[] row = {id, name, unit, quantity, total};
                         model.addRow(row);
@@ -1595,7 +1626,7 @@ private void saveSampleCsv() {
                 st.close();
                 conn.close();
 
-                sumTexFld.setText(Integer.toString(catSum()));
+                sumTexFld.setText(String.valueOf(catSum()));
 
             } catch (Exception e) {
                 System.out.print(e.getMessage());
@@ -1651,7 +1682,7 @@ private void saveSampleCsv() {
                 String sql = "SELECT * FROM products WHERE name = '" + select + "'";
                 ResultSet rs = st.executeQuery(sql);
                 DefaultTableModel model = (DefaultTableModel) restockTable.getModel();
-                String name, id, unit, quantity, price,buying_price;
+                String name, id, unit, quantity, price,buying_price,total_bp;
 
                 while (rs.next()) {
                     id = rs.getString(1);
@@ -1660,14 +1691,15 @@ private void saveSampleCsv() {
                     quantity = q2.getText();
                     price = p1.getText();
                     buying_price = Bp1.getText();
+                    total_bp = String.valueOf(Float.parseFloat(quantity)*Float.parseFloat(buying_price));
 
-                    String[] row = {id, name, unit, quantity, price,buying_price};
+                    String[] row = {id, name, unit, quantity, price,buying_price,total_bp};
                     model.addRow(row);
                 }
                 st.close();
                 conn.close();
                 //to be done next
-                sumTexFld1.setText(Integer.toString(restockCatSum()));
+                sumTexFld1.setText(Float.toString(restockCatSum()));
 
             } catch (SQLException e) {
                 System.out.print(e.getMessage());
@@ -1803,7 +1835,7 @@ private void saveSampleCsv() {
                     for (int i = 0; i < catTable.getRowCount(); i++) {
                         insert.setString(1, model.getValueAt(i, 1).toString());
                         insert.setString(2, model.getValueAt(i, 2).toString());
-                        insert.setInt(3, Integer.parseInt(model.getValueAt(i, 3).toString()));
+                        insert.setFloat(3, Float.parseFloat(model.getValueAt(i, 3).toString()));
                         insert.setFloat(4, Float.parseFloat(model.getValueAt(i, 4).toString()));
                         insert.setInt(6, Integer.parseInt(userId));
                         //calculate profit
@@ -1813,21 +1845,21 @@ private void saveSampleCsv() {
                         if(rs1.next()){
                          float buyP = rs1.getInt("buying_price");
                          float Price = rs1.getInt("price");
-                         float profit = (Price-buyP)*Integer.parseInt(model.getValueAt(i, 3).toString());
+                         float profit = (Price-buyP)*Float.parseFloat(model.getValueAt(i, 3).toString());
                          insert.setFloat(5, profit);
                         }
                         st1.close();
                         
                         insert.executeUpdate();
-                        //seardch for product being sold
+                        //search for product being sold
                         Statement st = conn.createStatement();
                         String sql = "SELECT * FROM products WHERE id = " + model.getValueAt(i, 0);
                         ResultSet rs = st.executeQuery(sql);
                         //update quantity of the product
                         if (rs.next()) {
-                            int q = Integer.parseInt(rs.getString(4)) - Integer.parseInt(model.getValueAt(i, 3).toString());
-                            String q1 = String.valueOf(q);
-                            String sql2 = "UPDATE products set quantity=" + q1 + " WHERE id =" + model.getValueAt(i, 0).toString();
+                            float q = Float.parseFloat(rs.getString(4)) - Integer.parseInt(model.getValueAt(i, 3).toString());
+                            //String q1 = String.valueOf(q);
+                            String sql2 = "UPDATE products set quantity=" + q + " WHERE id =" + model.getValueAt(i, 0).toString();
                             st.executeUpdate(sql2);
                         }
                         st.close();
@@ -1862,7 +1894,7 @@ private void saveSampleCsv() {
 
 //restock products
     public void restockProducts() {
-
+       
         DefaultTableModel model = (DefaultTableModel) restockTable.getModel();
         int row_count = model.getRowCount();
         if (row_count < 1) {
@@ -1870,28 +1902,37 @@ private void saveSampleCsv() {
                     "Error!", JOptionPane.ERROR_MESSAGE);
 
         } else {
+           
             try {
                 Connection conn = getConnection();
-                PreparedStatement insert = conn.prepareStatement("insert into restocked_products (name,unit,quantity,price,buying_price,restocked_by)values(?,?,?,?,?,?)");
+                PreparedStatement insert = conn.prepareStatement("insert into restocked_products (name,unit,quantity,price,buying_price,restocked_by,invoice_no)values(?,?,?,?,?,?,?)");
+                invoice_no = JOptionPane.showInputDialog("Enter Invoice Number:");
                 for (int i = 0; i < model.getRowCount(); i++) {
                     //insert.setInt(1,0);//auto gen in db
                     insert.setString(1, model.getValueAt(i, 1).toString());
                     insert.setString(2, model.getValueAt(i, 2).toString());
-                    insert.setInt(3, Integer.parseInt(model.getValueAt(i, 3).toString()));
+                    insert.setFloat(3, Float.parseFloat(model.getValueAt(i, 3).toString()));
                     insert.setFloat(4, Float.parseFloat(model.getValueAt(i, 4).toString()));
                     insert.setFloat(5, Float.parseFloat(model.getValueAt(i, 5).toString()));
                     insert.setInt(6, Integer.parseInt(userId));
+                     //to add invoice number here !
+                    if(invoice_no==null){
+                        JOptionPane.showMessageDialog(null, "Provide invoice number!",
+                    "Error!", JOptionPane.ERROR_MESSAGE);
+                    return ;
+                    }
+                    insert.setString(7, invoice_no);
                     insert.executeUpdate();
-                    //seardch for product being sold
+                    //search for product being restocked
                     Statement st = conn.createStatement();
                     String sql = "SELECT * FROM products WHERE id = " + model.getValueAt(i, 0);
 
                     ResultSet rs = st.executeQuery(sql);
                     //update quantity of the product
                     if (rs.next()) {
-                        int q = Integer.parseInt(rs.getString(4)) + Integer.parseInt(model.getValueAt(i, 3).toString());
+                        float q = Float.parseFloat(rs.getString(4)) + Integer.parseInt(model.getValueAt(i, 3).toString());
                         float pr = Float.parseFloat(model.getValueAt(i, 4).toString());
-                         float Bpr = Float.parseFloat(model.getValueAt(i, 5).toString());
+                        float Bpr = Float.parseFloat(model.getValueAt(i, 5).toString());
                         String sql1 = "UPDATE products set quantity=" + q + ", price=" + pr + ", buying_price=" + Bpr + " WHERE id =" + model.getValueAt(i, 0).toString();
                         st.executeUpdate(sql1);
                     }
@@ -2186,8 +2227,8 @@ private void saveSampleCsv() {
     }
 
     //calculate sum of a given column of Jtable
-    private int colSum(JTable table, int n) {
-        int total = 0;
+    private float colSum(JTable table, int n) {
+        float total = 0;
         for (int i = 0; i < table.getRowCount(); i++) {
             try {
                 double value = Double.parseDouble(table.getValueAt(i, n).toString());
@@ -2312,6 +2353,14 @@ private void saveSampleCsv() {
         String to = todatePicker1.getJFormattedTextField().getText();
         String product = c5.getSelectedItem().toString();
         String seller = c6.getSelectedItem().toString();
+        //checke if invoiceTextFld is empty but checked;
+        if(invoiceCheckBox1.isSelected() && invoiceTextFld.getText().isEmpty()){
+             JOptionPane.showMessageDialog(null, "Provide invoice number!",
+                    "Error!", JOptionPane.ERROR_MESSAGE);
+                invoiceTextFld.requestFocus();
+                    return ;
+                    
+        }
         try {
             Connection conn = getConnection();
             Statement st = conn.createStatement();
@@ -2319,12 +2368,12 @@ private void saveSampleCsv() {
             Statement st3 = conn.createStatement();
 
             String sql = "SELECT * FROM restocked_products WHERE date >= '" + from + "' AND date <='" + to + "'";
-            if (!dateCheckBox1.isSelected() && product.equalsIgnoreCase("ALL")) {
+            if (!dateCheckBox1.isSelected() && !invoiceCheckBox1.isSelected() && product.equalsIgnoreCase("ALL")) {
                 sql = "SELECT * FROM restocked_products WHERE date BETWEEN '" + from + "' AND '" + to + "' ";
             }
 
             //all products sold by specific user between dates
-            if (!dateCheckBox1.isSelected() && product.equalsIgnoreCase("ALL") && !seller.equalsIgnoreCase("ALL")) {
+            if (!dateCheckBox1.isSelected()&& !invoiceCheckBox1.isSelected() && product.equalsIgnoreCase("ALL") && !seller.equalsIgnoreCase("ALL")) {
 
                 ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='" + seller + "' ");
                 if (rs3.next()) {
@@ -2333,7 +2382,7 @@ private void saveSampleCsv() {
             }
 
             //specific products sold by specific user between dates
-            if (!dateCheckBox1.isSelected() && !product.equalsIgnoreCase("ALL") && !seller.equalsIgnoreCase("ALL")) {
+            if (!dateCheckBox1.isSelected() && !invoiceCheckBox1.isSelected() && !product.equalsIgnoreCase("ALL") && !seller.equalsIgnoreCase("ALL")) {
 
                 ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='" + seller + "' ");
                 if (rs3.next()) {
@@ -2341,13 +2390,13 @@ private void saveSampleCsv() {
                 }
             }
 
-            if (!dateCheckBox1.isSelected() && !product.equalsIgnoreCase("ALL") && seller.equalsIgnoreCase("ALL")) {
+            if (!dateCheckBox1.isSelected() && !invoiceCheckBox1.isSelected() && !product.equalsIgnoreCase("ALL") && seller.equalsIgnoreCase("ALL")) {
                 sql = "SELECT * FROM restocked_products WHERE name ='" + product + "' AND date BETWEEN '" + from + "' AND '" + to + "' ";
             }
 
             //all
             //all products restocked by specific user:no time
-            if ((dateCheckBox1.isSelected()) && (product.equalsIgnoreCase("ALL")) && (!seller.equalsIgnoreCase("ALL"))) {
+            if ((dateCheckBox1.isSelected()) && !invoiceCheckBox1.isSelected() && (product.equalsIgnoreCase("ALL")) && (!seller.equalsIgnoreCase("ALL"))) {
 
                 ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='" + seller + "' ");
                 if (rs3.next()) {
@@ -2356,7 +2405,7 @@ private void saveSampleCsv() {
             }
 
             //specific products sold by specific user:no time
-            if ((dateCheckBox1.isSelected()) && (!product.equalsIgnoreCase("ALL")) && (!seller.equalsIgnoreCase("ALL"))) {
+            if ((dateCheckBox1.isSelected()) && !invoiceCheckBox1.isSelected() && (!product.equalsIgnoreCase("ALL")) && (!seller.equalsIgnoreCase("ALL"))) {
 
                 ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='" + seller + "' ");
                 if (rs3.next()) {
@@ -2364,17 +2413,27 @@ private void saveSampleCsv() {
                 }
             }
 
-            if (dateCheckBox1.isSelected() && product.equalsIgnoreCase("ALL") && seller.equalsIgnoreCase("ALL")) {
+            if (dateCheckBox1.isSelected() && !invoiceCheckBox1.isSelected() && product.equalsIgnoreCase("ALL") && seller.equalsIgnoreCase("ALL")) {
                 sql = "SELECT * FROM restocked_products ";//show all sales for all products
             }
 
-            if (dateCheckBox1.isSelected() && !product.equalsIgnoreCase("ALL") && seller.equalsIgnoreCase("ALL")) {
+            if (dateCheckBox1.isSelected() && !invoiceCheckBox1.isSelected() && !product.equalsIgnoreCase("ALL") && seller.equalsIgnoreCase("ALL")) {
                 sql = "SELECT * FROM restocked_products WHERE name = '" + product + "' ";//show all sales for a specific product
             }
-
+            //search by invoice number
+             if (invoiceCheckBox1.isSelected() && product.equalsIgnoreCase("ALL") ) {
+                sql = "SELECT * FROM restocked_products WHERE invoice_no = '" + invoiceTextFld.getText() + "' ";
+            }
+             
+           //search by invoice number and specific product
+             if (invoiceCheckBox1.isSelected() && !product.equalsIgnoreCase("ALL") ) {
+                 sql = "SELECT * FROM restocked_products WHERE name='" + product + "' AND invoice_no='" + invoiceTextFld.getText() + "'";
+                
+            }  
+             
             ResultSet rs = st.executeQuery(sql);
             DefaultTableModel model = (DefaultTableModel) restockReportTable.getModel();
-            String id, name, unit, quantity, price,buying_price, restocked_by, date;
+            String id, name, unit, quantity, price,buying_price,total_bp, restocked_by,invoice, date;
             while (rs.next()) {
                 id = rs.getString(1);
                 name = rs.getString(2);
@@ -2382,6 +2441,7 @@ private void saveSampleCsv() {
                 quantity = rs.getString(4);
                 price = rs.getString(5);
                 buying_price = rs.getString(6);
+                total_bp = String.valueOf(Float.parseFloat(quantity)*Float.parseFloat(buying_price));
                 //find username of user foriegn key
                 ResultSet rs2 = st2.executeQuery("SELECT * FROM users WHERE id=" + Integer.valueOf(rs.getString(7)));
                 if (rs2.next()) {
@@ -2389,12 +2449,14 @@ private void saveSampleCsv() {
                 } else {
                     restocked_by = rs.getString(7);
                 }
-                date = rs.getString(8);
-                String[] row = {id, name, unit, quantity, price,buying_price, restocked_by, date};
+                invoice = rs.getString(8);
+                date = rs.getString(9);
+                
+                String[] row = {id, name, unit, quantity, price,buying_price,total_bp, restocked_by,invoice, date};
                 model.addRow(row);
-
+                
             }
-            // model.addRow(new Object[]{"", "", "","Sum Total", colSum(salesTable,4), "",""});
+            model.addRow(new Object[]{"", "", "","","","Sum Total", colSum(restockReportTable, 6), "","", ""});
             st.close();
             conn.close();
 
@@ -2497,9 +2559,9 @@ private void saveSampleCsv() {
                 String name = productName.getText();
                 //int  id =Integer.parseInt(productId.getText());
                 String unit = productUnit.getText();
-                int quantity = Integer.parseInt(productQuantity.getText());
+                float quantity = Float.parseFloat(productQuantity.getText());
                 float price = Float.parseFloat(productPrice.getText());
-                int minQ = Integer.parseInt(minQuantity.getText());
+                float minQ = Float.parseFloat(minQuantity.getText());
                 float bPrice = Float.parseFloat(buyingPrice.getText());
 
                 try {
@@ -2509,10 +2571,10 @@ private void saveSampleCsv() {
 //          insert.setInt(1,0);//auto gen in db
                     insert.setString(1, name);
                     insert.setString(2, unit);
-                    insert.setInt(3, quantity);
+                    insert.setFloat(3, quantity);
                     insert.setFloat(4, price);
                     insert.setFloat(5, bPrice);
-                    insert.setInt(6, minQ);
+                    insert.setFloat(6, minQ);
                     insert.setInt(7, Integer.parseInt(userId));
                     insert.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Product Successfuly Added");
@@ -2611,8 +2673,8 @@ private void saveSampleCsv() {
                 JOptionPane.showMessageDialog(null, "press edit button", "Error!", JOptionPane.ERROR_MESSAGE);
             } else {
                 try {
-                    int quantity = Integer.parseInt(editQuantity.getText());
-                    int min_quantity = Integer.parseInt(editMinQ.getText());
+                    float quantity = Float.parseFloat(editQuantity.getText());
+                    float min_quantity = Float.parseFloat(editMinQ.getText());
                     float price = Float.parseFloat(editPrice.getText());
                     float bPrice = Float.parseFloat(editBuyingPrice.getText());
                     int id = Integer.parseInt(allProductsTable.getValueAt(allProductsTable.getSelectedRow(), 0).toString());
