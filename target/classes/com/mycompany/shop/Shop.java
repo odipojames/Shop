@@ -62,7 +62,7 @@ public class Shop extends JFrame implements ActionListener {
     JButton clearButton1;
     JTextField searchT1;
     JButton searchB1;
-    JComboBox c1, c2, roleC, c3, c4, c5, c6;
+    JComboBox c1, c2, roleC, c3, c4, c5, c6,c7,c8,c9;
     JTable catTable;
     JTextField sumTexFld;
     JButton addB1,uploadButton,sampleUploadButton;
@@ -82,17 +82,22 @@ public class Shop extends JFrame implements ActionListener {
     JTextField editMinQ,editBuyingPrice;
     JButton saveB;
     JButton deleteB;
-    JTable restockTable, usersTable, salesTable, restockReportTable;
+    JTextField expense,expenditure,reciept_no,editExpense,editExpenditure,editRecieptN,editExpenseDate;
+    JTable restockTable, usersTable, salesTable, restockReportTable,expensesTable,disparitiesTable;
     JButton restockB1;
     JButton addB2, createUserB, editUserB, processB, processB1;
     JTextField sumTexFld1, q2, p1,invoiceTextFld, Bp1,userName, editUserName, editUserRole, editUserPassword;
     JPasswordField passwordP;
-    JCheckBox dateCheckBox, dateCheckBox1,invoiceCheckBox1;
+    JCheckBox dateCheckBox, dateCheckBox1,dateCheckBox2,dateCheckBox3,invoiceCheckBox1;
     JButton currentStockExpt, currentStock;
     private Map<String, Integer> inventory = new HashMap<>();
-
+    JButton addExpenseButton,expEditButton,editExpenseButton,showExpensesButton;
+    JButton expDeleteButton,expExcelButton,expPdfButton;
+    JTextField disparity,editDisparityStatus,editDisparity,editDisparityDate;
+    JButton addDisparityButton,dispEditButton,dispDeleteButton,showDisparitiesButton;
+    JButton editDisparityButton,dispPdfButton,dispExcelButton;
     JFrame jm = new JFrame();
-    JDatePickerImpl todatePicker, fromdatePicker, todatePicker1, fromdatePicker1;
+    JDatePickerImpl todatePicker, fromdatePicker, todatePicker1, fromdatePicker1,todatePicker2, fromdatePicker2,todatePicker3, fromdatePicker3,disparityDatePicker;
     public static boolean isAuthenticated = false;
     public static String logUser = "";
     public static String role = "";
@@ -236,7 +241,9 @@ public class Shop extends JFrame implements ActionListener {
         sellProductPanel.setSize(1000, 500);
         sellProductPanel1.setBorder(new EmptyBorder(20, 50, 50, 50));
         tabs.add("Sell Product", sellProductPanel);
-        tabs.add("Add New  Products", addProductsPanel);
+        if (isAuthenticated && role.equalsIgnoreCase("admin")) {
+             tabs.add("Add New  Products", addProductsPanel);
+        }
         sellProductPanel.setLayout(new BorderLayout());
         sellProductPanel.add(sellProductPanel1, BorderLayout.NORTH);
         c1 = new JComboBox();
@@ -355,6 +362,7 @@ public class Shop extends JFrame implements ActionListener {
 
         //view all products window
         tabs.add("View All Products", allProductViewPanel);
+        
 
         allProductViewPanel.setLayout(null);
         JPanel allProductViewPanel1 = new JPanel();
@@ -792,7 +800,10 @@ public class Shop extends JFrame implements ActionListener {
         }
 
         //sales report window
-        tabs.add("View Sales Report", salesReportPanel);
+         if (isAuthenticated && role.equalsIgnoreCase("admin")) {
+             tabs.add("View Sales Report", salesReportPanel);
+        }
+       
         salesReportPanel.setLayout(null);
 
         JPanel salesTablePanel = new JPanel();
@@ -939,7 +950,10 @@ public class Shop extends JFrame implements ActionListener {
 
         //restock report window
         JPanel restockReportPanel = new JPanel();
-        tabs.add("View Restock History", restockReportPanel);
+          if (isAuthenticated && role.equalsIgnoreCase("admin")) {
+              tabs.add("View Restock History", restockReportPanel);
+        }
+       
         restockReportPanel.setLayout(null);
 
         JPanel restockReportTablePanel = new JPanel();
@@ -1104,10 +1118,369 @@ public class Shop extends JFrame implements ActionListener {
                 loadInventoryFromDatabase();
             }
         }, firstAlertDelay, repeatAlertInterval);
+        
+        //exspenses window
+        JPanel expensesPanel = new JPanel();
+        tabs.add("Expenses", expensesPanel);
+        expensesPanel.setLayout(null);
+        JLabel expenseL = new JLabel("expense name");
+        expenseL.setBounds(200, 15, 200, 20);
+        expense = new JTextField();
+        expense.setBounds(200, 40, 200, 20);
+        expensesPanel.add(expenseL);
+        expensesPanel.add(expense);
+        
+        JLabel expenditureL = new JLabel("Expenditure Ksh");
+        expenditureL.setBounds(500, 15, 200, 20);
+        expenditure = new JTextField();
+        expenditure.addKeyListener(new JFloatListener(expenditure));
+        expenditure.setBounds(500, 40, 200, 20);
+        expensesPanel.add(expenditureL);
+        expensesPanel.add(expenditure);
+        
+        JLabel reciept_noL= new JLabel("Reciept No");
+        reciept_noL.setBounds(200, 70, 200, 20);
+        reciept_no = new JTextField();
+        reciept_no.setBounds(200, 95, 200, 20);
+        expensesPanel.add(reciept_noL);
+        expensesPanel.add(reciept_no);
+        
+        addExpenseButton = new JButton("Add Expense");
+        addExpenseButton.addActionListener((this));
+        addExpenseButton.setBounds(500, 95, 200, 20);
+        expensesPanel.add(addExpenseButton);
+        
+        
+        JLabel fromLabel4 = new JLabel("From:");
+        fromLabel4.setBounds(30, 120, 100, 20);
+        expensesPanel.add(fromLabel4);
+        fromLabel4.setForeground(Color.green);
+        fromLabel4.setFont(new Font("Serif", Font.PLAIN, 16));
 
+        //date picker properties
+        UtilDateModel fromdatemodel4 = new UtilDateModel();
+        fromdatemodel4.setDate(Ldate.getYear(), Ldate.getMonthValue() - 1, Ldate.getDayOfMonth());
+        fromdatemodel4.setSelected(true);
+        JDatePanelImpl datePanel4 = new JDatePanelImpl(fromdatemodel4, p);
+        fromdatePicker2 = new JDatePickerImpl(datePanel4, new DateLabelFormatter());
+        fromdatePicker2.setBounds(30, 140, 150, 20);
+        expensesPanel.add(fromdatePicker2);
+
+        JLabel toLabel4 = new JLabel("To:");
+        toLabel4.setBounds(210, 120, 100, 20);
+        expensesPanel.add(toLabel4);
+        toLabel4.setForeground(Color.green);
+        toLabel1.setFont(new Font("Serif", Font.PLAIN, 16));
+
+        UtilDateModel todatemodel4 = new UtilDateModel();
+        todatemodel4.setDate(Ldate.getYear(), Ldate.getMonthValue() - 1, Ldate.getDayOfMonth());
+        todatemodel4.setSelected(true);
+        JDatePanelImpl datePanel5 = new JDatePanelImpl(todatemodel4, p);
+        todatePicker2 = new JDatePickerImpl(datePanel5, new DateLabelFormatter());
+        todatePicker2.setBounds(200, 140, 150, 20);
+        expensesPanel.add(todatePicker2);
+
+        dateCheckBox2 = new JCheckBox("All Dates", false);
+        dateCheckBox2.setBounds(380, 140, 100, 20);
+        dateCheckBox2.setForeground(Color.green);
+        dateCheckBox2.setFont(new Font("Serif", Font.PLAIN, 16));
+        expensesPanel.add(dateCheckBox2);
+        JLabel sellerExLabel = new JLabel("Seller");
+        sellerExLabel.setBounds(500, 120, 100, 20);
+        expensesPanel.add(sellerExLabel);
+        sellerExLabel.setForeground(Color.green);
+        sellerExLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+
+        c7 = new JComboBox();
+        c7.addItem("ALL");
+        c7.setBounds(500, 140, 100, 20);
+        expensesPanel.add(c7);
+        c7.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                filComb7();
+            }
+        });
+        showExpensesButton = new JButton("Show report");
+        showExpensesButton.addActionListener((this));
+        showExpensesButton.setBounds(620, 140, 120, 20);
+        expensesPanel.add(showExpensesButton);
+        
+         // expenses  table
+        DefaultTableModel expensesTableModel = new DefaultTableModel();
+        expensesTableModel.addColumn("ID");
+        expensesTableModel.addColumn("Expense");
+        expensesTableModel.addColumn("Expenditure Ksh.");
+        expensesTableModel.addColumn("Reciept No");
+        expensesTableModel.addColumn("Added BY");
+        expensesTableModel.addColumn("Date");
+        expensesTable = new JTable(expensesTableModel);
+        
+        expensesTable.getColumnModel().getColumn(1).setPreferredWidth(140);
+        
+        //dissable cell from edditing
+        for (int c = 0; c < expensesTable.getColumnCount(); c++) {
+            Class<?> col_class = expensesTable.getColumnClass(c);
+            expensesTable.setDefaultEditor(col_class, null);        // remove editor
+        }
+        JScrollPane sp7 = new JScrollPane(expensesTable);
+        sp7.setBounds(5, 165, 800, 300);
+        expensesPanel.add(sp7);
+        
+        expPdfButton = new JButton("print");
+        expPdfButton.setBounds(150, 475, 100, 20);
+        expPdfButton.addActionListener((this));
+        expensesPanel.add(expPdfButton);
+        expEditButton = new JButton("edit");
+        expEditButton.addActionListener((this));
+        expEditButton.setBounds(260, 475, 100, 20);
+        expDeleteButton = new JButton("delete");
+        expDeleteButton.addActionListener((this));
+        expDeleteButton.setBounds(370, 475, 100, 20);
+        expExcelButton = new JButton("export excl");
+        expExcelButton.setBounds(480, 475, 100, 20);
+        expExcelButton.addActionListener((this));
+        if (isAuthenticated && role.equalsIgnoreCase("admin")) {
+        expensesPanel.add(expEditButton);
+        expensesPanel.add(expDeleteButton);
+        expensesPanel.add(expExcelButton);
+        }
+       
+        
+
+       
+        
+        JPanel editExpensePanel = new JPanel();
+        Border blackline5 = BorderFactory.createTitledBorder("Edit ");
+        editExpensePanel.setBorder(blackline5);
+        editExpensePanel.setLayout(null);
+        editExpensePanel.setBounds(820, 120, 270, 300);
+         if (isAuthenticated && role.equalsIgnoreCase("admin")) {
+         expensesPanel.add(editExpensePanel);
+        }
+        JLabel editExpenseL = new JLabel("expense name");
+        editExpenseL.setBounds(30, 20, 200, 20);
+         editExpense = new JTextField();
+        editExpense.setBounds(10, 45, 200, 20);
+        editExpensePanel.add(editExpenseL);
+        editExpensePanel.add(editExpense);
+        
+        JLabel editExpenditureL = new JLabel("Expenditure Ksh");
+        editExpenditureL.setBounds(30, 75, 200, 20);
+        editExpenditure = new JTextField();
+        editExpenditure.addKeyListener(new JFloatListener(editExpenditure));
+        editExpenditure.setBounds(10, 100, 200, 20);
+        editExpensePanel.add(editExpenditureL);
+        editExpensePanel.add(editExpenditure);
+         
+        JLabel editRecieptL= new JLabel("Reciept No");
+        editRecieptL.setBounds(30, 130, 200, 20);
+        editRecieptN = new JTextField();
+        editRecieptN.setBounds(10, 155, 200, 20);
+        editExpensePanel.add(editRecieptL);
+        editExpensePanel.add(editRecieptN );
+        
+        
+        JLabel editExpenseDateL= new JLabel("Date Registered");
+        editExpenseDateL.setBounds(30, 185, 200, 20);
+        editExpenseDate = new JTextField();
+        editExpenseDate.setBounds(10, 205, 200, 20);
+        editExpensePanel.add(editExpenseDateL);
+        editExpensePanel.add(editExpenseDate );
+        
+        
+        editExpenseButton = new JButton("Save");
+        editExpenseButton.setBounds(10, 245, 200, 20);
+        editExpenseButton.addActionListener((this));
+        editExpensePanel.add(editExpenseButton);
+        
+        
+        
+        
+      //disparities/shots window
+        JPanel disparitiesPanel = new JPanel();
+          if (isAuthenticated && role.equalsIgnoreCase("admin")) {
+          tabs.add("Disparities", disparitiesPanel);
+        }
+        disparitiesPanel.setLayout(null);
+        JLabel sellerL = new JLabel("Seller");
+        sellerL.setBounds(200, 15, 200, 20);
+        disparitiesPanel.add(sellerL);
+        c8 = new JComboBox();
+        c8.addItem("ALL");
+        c8.setBounds(200, 40, 200, 20);
+        disparitiesPanel.add(c8);
+        c8.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                filComb8();
+            }
+        });
+      
+        JLabel disparityL = new JLabel("Dipsparity Ksh");
+        disparityL.setBounds(500, 15, 200, 20);
+        disparity = new JTextField();
+        disparity.addKeyListener(new JFloatListener(disparity));
+        disparity.setBounds(500, 40, 200, 20);
+        disparitiesPanel.add(disparityL);
+        disparitiesPanel.add(disparity);
+        
+        JLabel dispDateL= new JLabel("Date");
+        dispDateL.setBounds(200, 70, 200, 20);
+        disparitiesPanel.add( dispDateL);
+        UtilDateModel disparityDateModel = new UtilDateModel();
+        disparityDateModel.setDate(Ldate.getYear(), Ldate.getMonthValue() - 1, Ldate.getDayOfMonth());
+        disparityDateModel.setSelected(true);
+        JDatePanelImpl disparityDatePanel = new JDatePanelImpl(disparityDateModel, p);
+        disparityDatePicker = new JDatePickerImpl(disparityDatePanel, new DateLabelFormatter());
+        disparityDatePicker.setBounds(200, 95, 200, 20);
+        disparitiesPanel.add( disparityDatePicker);
+        
+        
+        addDisparityButton = new JButton("Add Disparity");
+        addDisparityButton.setBounds(500, 95, 200, 20);
+        disparitiesPanel.add(addDisparityButton);
+         addDisparityButton.addActionListener((this));
+        
+        
+        JLabel fromLabel5 = new JLabel("From:");
+        fromLabel5.setBounds(30, 120, 100, 20);
+        disparitiesPanel.add(fromLabel5);
+        fromLabel5.setForeground(Color.green);
+        fromLabel5.setFont(new Font("Serif", Font.PLAIN, 16));
+
+        //date picker properties
+        UtilDateModel fromdatemodel6 = new UtilDateModel();
+        fromdatemodel6.setDate(Ldate.getYear(), Ldate.getMonthValue() - 1, Ldate.getDayOfMonth());
+        fromdatemodel6.setSelected(true);
+        JDatePanelImpl datePanel6 = new JDatePanelImpl(fromdatemodel6, p);
+        fromdatePicker3 = new JDatePickerImpl(datePanel6, new DateLabelFormatter());
+        fromdatePicker3.setBounds(30, 140, 150, 20);
+        disparitiesPanel.add(fromdatePicker3);
+
+        JLabel toLabel5 = new JLabel("To:");
+        toLabel5.setBounds(210, 120, 100, 20);
+        disparitiesPanel.add(toLabel5);
+        toLabel5.setForeground(Color.green);
+        toLabel5.setFont(new Font("Serif", Font.PLAIN, 16));
+
+        UtilDateModel todatemodel7 = new UtilDateModel();
+        todatemodel7.setDate(Ldate.getYear(), Ldate.getMonthValue() - 1, Ldate.getDayOfMonth());
+        todatemodel7.setSelected(true);
+        JDatePanelImpl datePanel7 = new JDatePanelImpl(todatemodel7, p);
+        todatePicker3 = new JDatePickerImpl(datePanel7, new DateLabelFormatter());
+        todatePicker3.setBounds(200, 140, 150, 20);
+        disparitiesPanel.add(todatePicker3);
+
+        dateCheckBox3 = new JCheckBox("All Dates", false);
+        dateCheckBox3.setBounds(380, 140, 100, 20);
+        dateCheckBox3.setForeground(Color.green);
+        dateCheckBox3.setFont(new Font("Serif", Font.PLAIN, 16));
+        disparitiesPanel.add(dateCheckBox3);
+        JLabel sellerDispLabel = new JLabel("Seller");
+        sellerExLabel.setBounds(500, 120, 100, 20);
+        disparitiesPanel.add(sellerDispLabel);
+        sellerDispLabel.setForeground(Color.green);
+        sellerDispLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+
+        c9 = new JComboBox();
+        c9.addItem("ALL");
+        c9.setBounds(500, 140, 100, 20);
+        disparitiesPanel.add(c9);
+        c9.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                filComb9();
+            }
+        });
+        showDisparitiesButton = new JButton("Show report");
+        showDisparitiesButton.setBounds(620, 140, 120, 20);
+        showDisparitiesButton.addActionListener((this));
+        disparitiesPanel.add(showDisparitiesButton);
+        
+         // disparities table
+        DefaultTableModel disparitiesTableModel = new DefaultTableModel();
+        disparitiesTableModel.addColumn("ID");
+        disparitiesTableModel.addColumn("Seller");
+        disparitiesTableModel.addColumn("Disparity Ksh.");
+        disparitiesTableModel.addColumn("Status");
+        disparitiesTableModel.addColumn("Added BY");
+        disparitiesTableModel.addColumn("Date");
+        disparitiesTable = new JTable(disparitiesTableModel);
+        
+        disparitiesTable.getColumnModel().getColumn(1).setPreferredWidth(140);
+        
+        //dissable cell from edditing
+        for (int c = 0; c < disparitiesTable.getColumnCount(); c++) {
+            Class<?> col_class = disparitiesTable.getColumnClass(c);
+            disparitiesTable.setDefaultEditor(col_class, null);        // remove editor
+        }
+        JScrollPane sp8 = new JScrollPane(disparitiesTable);
+        sp8.setBounds(5, 165, 800, 300);
+        disparitiesPanel.add(sp8);
+        
+        dispPdfButton = new JButton("print");
+        dispPdfButton.setBounds(150, 475, 100, 20);
+        dispPdfButton.addActionListener((this));
+        disparitiesPanel.add(dispPdfButton);
+        dispEditButton = new JButton("edit");
+        dispEditButton.addActionListener((this));
+        dispEditButton.setBounds(260, 475, 100, 20);
+        dispDeleteButton = new JButton("delete");
+        dispDeleteButton.setBounds(370, 475, 100, 20);
+        dispDeleteButton.addActionListener((this));
+        dispExcelButton = new JButton("export excl");
+        dispExcelButton.addActionListener((this));
+        dispExcelButton.setBounds(480, 475, 100, 20);
+        disparitiesPanel.add(dispEditButton);
+        disparitiesPanel.add(dispDeleteButton);
+        disparitiesPanel.add(dispExcelButton);
+
+       
+        
+        JPanel editDisparityPanel = new JPanel();
+        Border blackline6 = BorderFactory.createTitledBorder("Edit ");
+        editDisparityPanel.setBorder(blackline6);
+        editDisparityPanel.setLayout(null);
+        editDisparityPanel.setBounds(820, 120, 270, 300);
+        disparitiesPanel.add(editDisparityPanel);
+        JLabel editDisparityL = new JLabel("Disparity Ksh.");
+        editDisparityL.setBounds(30, 20, 200, 20);
+        editDisparity = new JTextField();
+        editDisparity.setBounds(10, 45, 200, 20);
+        editDisparity.addKeyListener(new JFloatListener(editDisparity));
+        editDisparityPanel.add(editDisparityL);
+        editDisparityPanel.add(editDisparity);
+        
+        JLabel editDisparityStatusL = new JLabel("Status");
+        editDisparityStatusL.setBounds(30, 75, 200, 20);
+        editDisparityStatus = new JTextField();
+        editDisparityStatus.setBounds(10, 100, 200, 20);
+        editDisparityPanel.add(editDisparityStatusL);
+        editDisparityPanel.add(editDisparityStatus);
+         
+        JLabel editDisparityDateL= new JLabel("Date");
+        editDisparityDateL.setBounds(30, 130, 200, 20);
+        editDisparityDate = new JTextField();
+        editDisparityDate.setBounds(10, 155, 200, 20);
+        editDisparityPanel.add(editDisparityDateL);
+        editDisparityPanel.add(editDisparityDate );
+        
+ 
+        
+        editDisparityButton = new JButton("Save");
+        editDisparityButton.setBounds(10, 245, 200, 20);
+        editDisparityButton.addActionListener((this));
+        editDisparityPanel.add(editDisparityButton);
+        
+        
+        
         jm.add(tabs);
 
         jm.setTitle("CLUB ZION POS");
+        if (isAuthenticated && !role.equalsIgnoreCase("admin")) {
+          jm.setSize(800, 650);
+        }
         jm.setSize(1100, 650);
         jm.setLocationRelativeTo(null);
         //add icon;
@@ -1152,6 +1525,235 @@ public class Shop extends JFrame implements ActionListener {
 
         return conn;
     }
+    
+    
+ //add disparity
+    //add expense
+    private void addDisparity(){
+        if(disparity.getText().trim().isEmpty() || c8.getItemCount()==0  ){
+        JOptionPane.showMessageDialog(this, "ALl fields required", "Error!", JOptionPane.ERROR_MESSAGE);
+         return;
+        }
+        String seller = c8.getSelectedItem().toString();
+        Float  disp = Float.valueOf(disparity.getText());
+        String date = disparityDatePicker.getJFormattedTextField().getText();
+        
+        
+        try{
+        Connection conn =getConnection();
+        String sql = "INSERT INTO disparities (seller,disparity,added_by,date) VALUES (?, ?, ?, ?)";
+        PreparedStatement state = conn.prepareStatement(sql);
+        state.setString(1, seller);
+        state.setFloat(2, disp);
+       // state.setString(3, reciept_num);
+        state.setInt(3,Integer.parseInt(userId));
+        state.setString(4, date);
+        state.executeUpdate();
+        JOptionPane.showMessageDialog(this, "Disparity recorded.", "Success", JOptionPane.INFORMATION_MESSAGE);
+        state.close();
+        conn.close();
+        disparitiesTableReport();
+        disparity.setText(" ");
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        
+    }
+
+ public void disparitiesTableReport() {
+        //clears table if any
+        DefaultTableModel dm = (DefaultTableModel) disparitiesTable.getModel();
+        dm.setRowCount(0);
+        //get filter variables
+        String from = fromdatePicker3.getJFormattedTextField().getText();
+        String to = todatePicker3.getJFormattedTextField().getText();
+        String seller = c9.getSelectedItem().toString();
+        try {
+            Connection conn = getConnection();
+            Statement st = conn.createStatement();
+            Statement st2 = conn.createStatement();
+            Statement st3 = conn.createStatement();
+            String sql = "SELECT * FROM disparities ORDER BY date DESC ";
+            
+              //expenses by specific seller between dates
+            if (!dateCheckBox3.isSelected() && !seller.equalsIgnoreCase("ALL")) {
+
+                ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='" + seller + "' ");
+                if (rs3.next()) {
+                    sql = "SELECT * FROM disparities WHERE added_by =" + Integer.valueOf(rs3.getString(1)) + " AND date BETWEEN '" + from + "' AND '" + to + "' ";
+                }
+            }
+            //specific dates but  all sellers
+            if (!dateCheckBox3.isSelected() && seller.equalsIgnoreCase("ALL")) {
+
+             sql = "SELECT * FROM disparities WHERE date >= '" + from + "' AND date <='" + to + "'";
+                       
+            }
+             //all dates and  all sellers
+            if (dateCheckBox3.isSelected() && seller.equalsIgnoreCase("ALL")) {
+
+             sql = "SELECT * FROM disparities ";
+                       
+            }
+            
+            //all dates but specific seller
+             if (dateCheckBox3.isSelected() && !seller.equalsIgnoreCase("ALL")) {
+
+                ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='" + seller + "' ");
+                if (rs3.next()) {
+                    sql = "SELECT * FROM disparities WHERE added_by =" + Integer.valueOf(rs3.getString(1));
+                }
+            }
+            ResultSet rs = st.executeQuery(sql);
+            DefaultTableModel model = (DefaultTableModel) disparitiesTable.getModel();
+            String id,seller1,disparity1,status,added_by, date;
+            while (rs.next()) {
+                id = rs.getString(1);
+                seller1 = rs.getString(2);
+                disparity1 = rs.getString(3);
+                status = rs.getString(4);
+                //find username of user foriegn key
+                ResultSet rs2 = st2.executeQuery("SELECT * FROM users WHERE id=" + Integer.parseInt(rs.getString(5)) + " ");
+                if (rs2.next()) {
+                    added_by = rs2.getString(2);
+                } else {
+                    added_by = rs.getString(5);
+                }
+                date = rs.getString(6);
+                String[] row = {id,seller1,disparity1,status,added_by,date};
+                model.addRow(row);
+            }
+             model.addRow(new Object[]{"", "Sum Total", colSum(disparitiesTable, 2),"","",""});
+            st.close();
+            st2.close();
+            conn.close();
+
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+
+    } 
+        
+    
+    
+    
+ //add expense
+    private void addExspense(){
+        if(expense.getText().trim().isEmpty() ||expenditure.getText().trim().isEmpty() || reciept_no.getText().trim().isEmpty() ){
+        JOptionPane.showMessageDialog(this, "ALl fields required", "Error!", JOptionPane.ERROR_MESSAGE);
+         return;
+        }
+        String expe = expense.getText();
+        Float  expnd = Float.valueOf(expenditure.getText());
+        String reciept_num =  reciept_no.getText();
+        
+        try{
+        Connection conn =getConnection();
+        String sql = "INSERT INTO expenses (expense, expenditure,reciept_no,  added_by) VALUES (?, ?, ?, ?)";
+        PreparedStatement state = conn.prepareStatement(sql);
+        state.setString(1, expe);
+        state.setFloat(2, expnd);
+        state.setString(3, reciept_num);
+        state.setInt(4,Integer.parseInt(userId));
+        state.executeUpdate();
+        JOptionPane.showMessageDialog(this, "Expense recorded.", "Success", JOptionPane.INFORMATION_MESSAGE);
+        state.close();
+        conn.close();
+        exspensesTableReport();
+        expense.setText(" ");
+        expenditure.setText(" ");
+        reciept_no.setText(" ");
+        
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        
+    }
+    
+    //expenses table report
+    public void exspensesTableReport() {
+        //clears table if any
+        DefaultTableModel dm = (DefaultTableModel) expensesTable.getModel();
+        dm.setRowCount(0);
+        //get filter variables
+        String from = fromdatePicker2.getJFormattedTextField().getText();
+        String to = todatePicker2.getJFormattedTextField().getText();
+        String seller = c7.getSelectedItem().toString();
+        try {
+            Connection conn = getConnection();
+            Statement st = conn.createStatement();
+            Statement st2 = conn.createStatement();
+            Statement st3 = conn.createStatement();
+            String sql = "SELECT * FROM expenses ORDER BY date DESC ";
+            
+              //expenses by specific seller between dates
+            if (!dateCheckBox2.isSelected() && !seller.equalsIgnoreCase("ALL")) {
+
+                ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='" + seller + "' ");
+                if (rs3.next()) {
+                    sql = "SELECT * FROM expenses WHERE added_by =" + Integer.valueOf(rs3.getString(1)) + " AND date BETWEEN '" + from + "' AND '" + to + "' ";
+                }
+            }
+            //specific dates but  all sellers
+            if (!dateCheckBox2.isSelected() && seller.equalsIgnoreCase("ALL")) {
+
+             sql = "SELECT * FROM expenses WHERE date >= '" + from + "' AND date <='" + to + "'";
+                       
+            }
+             //all dates and  all sellers
+            if (dateCheckBox2.isSelected() && seller.equalsIgnoreCase("ALL")) {
+
+             sql = "SELECT * FROM expenses ";
+                       
+            }
+            
+            //all dates but specific seller
+             if (dateCheckBox2.isSelected() && !seller.equalsIgnoreCase("ALL")) {
+
+                ResultSet rs3 = st3.executeQuery("SELECT * FROM users WHERE username='" + seller + "' ");
+                if (rs3.next()) {
+                    sql = "SELECT * FROM expenses WHERE added_by =" + Integer.valueOf(rs3.getString(1));
+                }
+            }
+            ResultSet rs = st.executeQuery(sql);
+            DefaultTableModel model = (DefaultTableModel) expensesTable.getModel();
+            String id,expense,expenditure,reciept,added_by, date;
+            while (rs.next()) {
+                id = rs.getString(1);
+                expense = rs.getString(2);
+                expenditure = rs.getString(3);
+                reciept = rs.getString(4);
+                //find username of user foriegn key
+                ResultSet rs2 = st2.executeQuery("SELECT * FROM users WHERE id=" + Integer.parseInt(rs.getString(5)) + " ");
+                if (rs2.next()) {
+                    added_by = rs2.getString(2);
+                } else {
+                    added_by = rs.getString(5);
+                }
+                date = rs.getString(6);
+                String[] row = {id,expense,expenditure,reciept,added_by,date};
+                model.addRow(row);
+            }
+             model.addRow(new Object[]{"", "Sum Total", colSum(expensesTable, 2),"" , "",""});
+            st.close();
+            st2.close();
+            conn.close();
+
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+
+    } 
+        
+        
+        
+        
+    
+    
+    
+    
     
     
    //csv upload/excel upload
@@ -1567,6 +2169,86 @@ public boolean searchByName(String sname) {
 
     }
 
+  public void filComb7() {
+        c7.removeAllItems();
+
+        try {
+            Connection conn = getConnection();
+            Statement st = conn.createStatement();
+            String sql = "SELECT DISTINCT  added_by FROM expenses";
+            ResultSet rs = st.executeQuery(sql);
+
+            while (rs.next()) {
+
+                Statement st2 = conn.createStatement();
+                ResultSet rs2 = st2.executeQuery("SELECT * FROM users WHERE id=" + rs.getString("added_by"));
+                if (rs2.next()) {
+                    c7.addItem(rs2.getString(2));
+                }
+            }
+
+            st.close();
+            conn.close();
+            c7.addItem("ALL");
+
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+  }
+      
+
+  
+        public void filComb8(){
+        c8.removeAllItems();
+
+        try {
+            Connection conn = getConnection();
+            Statement st = conn.createStatement();
+            String sql = "SELECT DISTINCT  * FROM users";
+            ResultSet rs = st.executeQuery(sql);
+            while (rs.next()) {
+             c8.addItem(rs.getString(2));  
+            }
+
+            st.close();
+            conn.close();
+            
+
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+
+    }  
+        
+        
+    public void filComb9() {
+        c9.removeAllItems();
+
+        try {
+            Connection conn = getConnection();
+            Statement st = conn.createStatement();
+            String sql = "SELECT DISTINCT  added_by FROM disparities";
+            ResultSet rs = st.executeQuery(sql);
+
+            while (rs.next()) {
+
+                Statement st2 = conn.createStatement();
+                ResultSet rs2 = st2.executeQuery("SELECT * FROM users WHERE id=" + rs.getString("added_by"));
+                if (rs2.next()) {
+                    c9.addItem(rs2.getString(2));
+                }
+            }
+
+            st.close();
+            conn.close();
+            c9.addItem("ALL");
+
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+  }     
+    
+    
     //adding product to cat table
     public void addToCat() {
         DefaultTableModel model = (DefaultTableModel) catTable.getModel();
@@ -2046,7 +2728,6 @@ public boolean searchByName(String sname) {
 
     }
 //update user details
-
     public boolean roleValidator(String role) {
         boolean check = false;
         String[] roles = {"admin", "normal"};
@@ -2699,6 +3380,9 @@ public boolean searchByName(String sname) {
             }
 
         }
+        
+        
+        
 
         if (e.getSource() == deleteB) {
             if (allProductsTable.getSelectedRow() < 0) {
@@ -2729,7 +3413,185 @@ public boolean searchByName(String sname) {
             }
 
         }
+        
+        // edit exp
+         if (e.getSource() == expEditButton) {
+            //check item not picked
+            if (expensesTable.getSelectedRow() < 0) {
+                JOptionPane.showMessageDialog(null, "you must select a row", "Error!", JOptionPane.ERROR_MESSAGE);
+            } else {
+                //read selected data
+                editExpense.setText(expensesTable.getValueAt(expensesTable.getSelectedRow(), 1).toString());
+                editExpenditure.setText(expensesTable.getValueAt(expensesTable.getSelectedRow(), 2).toString());
+                editRecieptN.setText(expensesTable.getValueAt(expensesTable.getSelectedRow(), 3).toString());
+                editExpenseDate.setText(expensesTable.getValueAt(expensesTable.getSelectedRow(), 5).toString());
+            }
 
+        }
+         
+         
+         if (e.getSource() ==  editExpenseButton) {
+
+            if (editExpense.getText().trim().isEmpty() || editExpenditure.getText().trim().isEmpty() || editRecieptN.getText().trim().isEmpty()
+                    || editExpenseDate.getText().trim().isEmpty() || expensesTable.getSelectedRow() < 0) {
+                JOptionPane.showMessageDialog(null, "press edit button", "Error!", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    int id = Integer.parseInt(expensesTable.getValueAt(expensesTable.getSelectedRow(), 0).toString());
+                    Connection conn = getConnection();
+                    //String sql = "UPDATE expenses set expense='" + editExpense.getText() + "', expenditure='" + editExpenditure.getText() + "', reciept_no=" + editRecieptN.getText()+ ",  date=" + editExpenseDate.getText() + ",  WHERE id =" + id;
+                    //String sql = "UPDATE expenses SET expense='" + editExpense.getText() + "', expenditure='" + Float.valueOf(editExpenditure.getText()) + "', reciept_no=" + editRecieptN.getText()+ ", date='" + editExpenseDate.getText() + "' WHERE id=" + id;
+                    String sql = "UPDATE expenses SET expense='" + editExpense.getText() + "', expenditure=" + Float.parseFloat(editExpenditure.getText()) + ", reciept_no='" + editRecieptN.getText() + "', date='" + editExpenseDate.getText() + "' WHERE id=" + id;
+                    Statement st = conn.createStatement();
+                    st.executeUpdate(sql);
+                    JOptionPane.showMessageDialog(this, "Expense Updated Succesfuly");
+                    exspensesTableReport();
+                    editExpense.setText(" ");
+                    editExpenditure.setText(" ");
+                    editRecieptN.setText(" ");
+                    editExpenseDate.setText("");
+                } catch (SQLException ex) {
+                    System.out.println(ex.getMessage());
+                }
+
+            }
+
+        }
+         
+         
+         if (e.getSource() == expDeleteButton) {
+            if (expensesTable.getSelectedRow() < 0) {
+                JOptionPane.showMessageDialog(this, "select item", "Error!", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    Connection conn = getConnection();
+                    Statement st = conn.createStatement();
+                    int id = Integer.parseInt(expensesTable.getValueAt(expensesTable.getSelectedRow(), 0).toString());
+                    String sql = "DELETE FROM expenses WHERE id = " + id;
+                    String name = expensesTable.getValueAt(expensesTable.getSelectedRow(), 1).toString();
+                    //confirm
+                    JDialog.setDefaultLookAndFeelDecorated(true);
+                    int response = JOptionPane.showConfirmDialog(null, "Do you want to delete " + name + " ?", "Confirm",
+                            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                    if (response == JOptionPane.YES_OPTION) {
+                        st.executeUpdate(sql);
+                        JOptionPane.showMessageDialog(this, " " + name + " deleted ");
+                        exspensesTableReport();
+
+                    }
+
+                } catch (SQLException ex) {
+                    System.out.println(ex.getMessage());
+                }
+
+            }
+
+        }
+         
+        if(e.getSource()==expExcelButton){
+        try {
+                exportTableToExcel(expensesTable);
+            } catch (IOException ex) {
+                Logger.getLogger(Shop.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        if(e.getSource()==expPdfButton){
+        printTable(expensesTable);
+        }
+        
+        //disparities
+        if(e.getSource()==addDisparityButton){
+        addDisparity();
+        }
+        
+        if(e.getSource()==showDisparitiesButton){
+        disparitiesTableReport();
+        }
+        
+        if (e.getSource() == dispEditButton) {
+            //check item not picked
+            if (disparitiesTable.getSelectedRow() < 0) {
+                JOptionPane.showMessageDialog(null, "you must select a row", "Error!", JOptionPane.ERROR_MESSAGE);
+            } else {
+                //read selected data
+                editDisparity.setText(disparitiesTable.getValueAt(disparitiesTable.getSelectedRow(), 2).toString());
+                editDisparityStatus.setText(disparitiesTable.getValueAt(disparitiesTable.getSelectedRow(), 3).toString());
+                editDisparityDate.setText(disparitiesTable.getValueAt(disparitiesTable.getSelectedRow(), 5).toString());
+                
+            }
+
+        }
+        
+         if (e.getSource() ==  editDisparityButton) {
+
+            if (editDisparity.getText().trim().isEmpty() || editDisparityStatus.getText().trim().isEmpty() || editDisparityDate.getText().trim().isEmpty()
+                     || disparitiesTable.getSelectedRow() < 0) {
+                JOptionPane.showMessageDialog(null, "press edit button", "Error!", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    int id = Integer.parseInt(disparitiesTable.getValueAt(disparitiesTable.getSelectedRow(), 0).toString());
+                    Connection conn = getConnection();
+                    //String sql = "UPDATE expenses set expense='" + editExpense.getText() + "', expenditure='" + editExpenditure.getText() + "', reciept_no=" + editRecieptN.getText()+ ",  date=" + editExpenseDate.getText() + ",  WHERE id =" + id;
+                    //String sql = "UPDATE expenses SET expense='" + editExpense.getText() + "', expenditure='" + Float.valueOf(editExpenditure.getText()) + "', reciept_no=" + editRecieptN.getText()+ ", date='" + editExpenseDate.getText() + "' WHERE id=" + id;
+                    String sql = "UPDATE disparities SET status='" + editDisparityStatus.getText() + "', disparity=" + Float.parseFloat(editDisparity.getText()) + ",date='" + editDisparityDate.getText() + "' WHERE id=" + id;
+                    Statement st = conn.createStatement();
+                    st.executeUpdate(sql);
+                    JOptionPane.showMessageDialog(this, "Disparity Updated Succesfuly");
+                    disparitiesTableReport();
+                    editDisparity.setText(" ");
+                    editDisparityStatus.setText(" ");
+                    editDisparityDate.setText(" ");
+                } catch (SQLException ex) {
+                    System.out.println(ex.getMessage());
+                }
+
+            }
+
+        }
+        
+         if (e.getSource() == dispDeleteButton) {
+            if (disparitiesTable.getSelectedRow() < 0) {
+                JOptionPane.showMessageDialog(this, "select item", "Error!", JOptionPane.ERROR_MESSAGE);
+            } else {
+                try {
+                    Connection conn = getConnection();
+                    Statement st = conn.createStatement();
+                    int id = Integer.parseInt(disparitiesTable.getValueAt(disparitiesTable.getSelectedRow(), 0).toString());
+                    String sql = "DELETE FROM disparities WHERE id = " + id;
+                    String name = disparitiesTable.getValueAt(disparitiesTable.getSelectedRow(), 1).toString();
+                    //confirm
+                    JDialog.setDefaultLookAndFeelDecorated(true);
+                    int response = JOptionPane.showConfirmDialog(null, "Do you want to delete this particular disparity of  " + name + " ?", "Confirm",
+                            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                    if (response == JOptionPane.YES_OPTION) {
+                        st.executeUpdate(sql);
+                        JOptionPane.showMessageDialog(this, " " + name + " deleted ");
+                        disparitiesTableReport();
+
+                    }
+
+                } catch (SQLException ex) {
+                    System.out.println(ex.getMessage());
+                }
+
+            }
+
+        }
+         
+         if(e.getSource()==dispExcelButton){
+        try {
+                exportTableToExcel(disparitiesTable);
+            } catch (IOException ex) {
+                Logger.getLogger(Shop.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        if(e.getSource()==dispPdfButton){
+        printTable(disparitiesTable);
+        }
+         
+         
         if (e.getSource() == addB2) {
             addToRestockTable();
         }
@@ -2778,6 +3640,13 @@ public boolean searchByName(String sname) {
         
         if(e.getSource()==sampleUploadButton){
         saveSampleCsv();
+        }
+        if(e.getSource()==addExpenseButton){
+        addExspense();
+        }
+        
+        if(e.getSource()==showExpensesButton){
+        exspensesTableReport();
         }
         
     }
