@@ -107,7 +107,7 @@ public class LoginPage  implements ActionListener {
             public void windowClosing(WindowEvent we)
             { 
                 String ObjButtons[] = {"Yes","No"};
-                int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you want to exit?","Online Examination System",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
+                int PromptResult = JOptionPane.showOptionDialog(null,"Are you sure you want to exit?","Zion POS System",JOptionPane.DEFAULT_OPTION,JOptionPane.WARNING_MESSAGE,null,ObjButtons,ObjButtons[1]);
                 if(PromptResult==JOptionPane.YES_OPTION)
                 {
                     System.exit(0);

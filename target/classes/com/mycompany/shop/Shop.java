@@ -2262,7 +2262,7 @@ public boolean searchByName(String sname) {
             JOptionPane.showMessageDialog(null, "enter quantity", "Error!", JOptionPane.ERROR_MESSAGE);
             q1.requestFocusInWindow();
 
-        } else if (Integer.parseInt(q1.getText()) <= 0) {
+        } else if (Float.parseFloat(q1.getText()) <= 0) {
             JOptionPane.showMessageDialog(null, "enter correct value of quantity", "Error!", JOptionPane.ERROR_MESSAGE);
             q1.requestFocusInWindow();
 
@@ -2525,8 +2525,8 @@ public boolean searchByName(String sname) {
                         String sql1 = "SELECT buying_price,price FROM products WHERE id = " + model.getValueAt(i, 0);
                         ResultSet rs1 = st1.executeQuery(sql1);
                         if(rs1.next()){
-                         float buyP = rs1.getInt("buying_price");
-                         float Price = rs1.getInt("price");
+                         float buyP = rs1.getFloat("buying_price");
+                         float Price = rs1.getFloat("price");
                          float profit = (Price-buyP)*Float.parseFloat(model.getValueAt(i, 3).toString());
                          insert.setFloat(5, profit);
                         }
@@ -2539,7 +2539,7 @@ public boolean searchByName(String sname) {
                         ResultSet rs = st.executeQuery(sql);
                         //update quantity of the product
                         if (rs.next()) {
-                            float q = Float.parseFloat(rs.getString(4)) - Integer.parseInt(model.getValueAt(i, 3).toString());
+                            float q = Float.parseFloat(rs.getString(4)) - Float.parseFloat(model.getValueAt(i, 3).toString());
                             //String q1 = String.valueOf(q);
                             String sql2 = "UPDATE products set quantity=" + q + " WHERE id =" + model.getValueAt(i, 0).toString();
                             st.executeUpdate(sql2);
