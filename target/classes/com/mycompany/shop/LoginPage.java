@@ -54,7 +54,7 @@ public class LoginPage  implements ActionListener {
         panel.setLayout(null);
         panel.setBorder(blackline);
         frame = new JFrame();
-        frame.setTitle("LOGIN TO ZION CLUB POS");
+        frame.setTitle("LOGIN TO POS");
         
         
         
@@ -142,12 +142,13 @@ public class LoginPage  implements ActionListener {
          Shop.logUser = Username;
          Shop.isAuthenticated = true;
          Shop.role = rs.getString(4);
-         Shop.userId = rs.getString(1);
+        Shop.userId = rs.getString(1);
         Shop b1 = new Shop();
         //loading data to window
         b1.displayAllProductstable();
         b1.usersTableShow();
         b1.allProductsTableShow();
+        b1.getSettings();
        
        
          

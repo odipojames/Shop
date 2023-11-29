@@ -39,6 +39,10 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
+import java.text.DateFormat;
+import java.util.Date;
+
+
 
 
 
@@ -86,8 +90,8 @@ public class Shop extends JFrame implements ActionListener {
     JTable restockTable, usersTable, salesTable, restockReportTable,expensesTable,disparitiesTable;
     JButton restockB1;
     JButton addB2, createUserB, editUserB, processB, processB1;
-    JTextField sumTexFld1, q2, p1,invoiceTextFld, Bp1,userName, editUserName, editUserRole, editUserPassword;
-    JPasswordField passwordP;
+    JTextField sumTexFld1, q2, p1,invoiceTextFld, Bp1,userName, editUserName, editUserRole;
+    JPasswordField passwordP, editUserPassword;
     JCheckBox dateCheckBox, dateCheckBox1,dateCheckBox2,dateCheckBox3,invoiceCheckBox1;
     JButton currentStockExpt, currentStock;
     private Map<String, Integer> inventory = new HashMap<>();
@@ -95,13 +99,16 @@ public class Shop extends JFrame implements ActionListener {
     JButton expDeleteButton,expExcelButton,expPdfButton;
     JTextField disparity,editDisparityStatus,editDisparity,editDisparityDate;
     JButton addDisparityButton,dispEditButton,dispDeleteButton,showDisparitiesButton;
-    JButton editDisparityButton,dispPdfButton,dispExcelButton;
+    JButton editDisparityButton,dispPdfButton,dispExcelButton,editSettingsB;
+    JTextField receipt_title,business_name;
     JFrame jm = new JFrame();
     JDatePickerImpl todatePicker, fromdatePicker, todatePicker1, fromdatePicker1,todatePicker2, fromdatePicker2,todatePicker3, fromdatePicker3,disparityDatePicker;
     public static boolean isAuthenticated = false;
     public static String logUser = "";
     public static String role = "";
     public static String userId = "";
+    String businessName = "";
+    String recieptTitle = "";
     String invoice_no ;
     
 
@@ -179,10 +186,10 @@ public class Shop extends JFrame implements ActionListener {
         allProductsPane2.add(searchT1);
         allProductsPane2.add(searchB1);
         uploadButton = new JButton("uplaod products");
-        uploadButton.addActionListener(this);
+        uploadButton.addActionListener((this));
         allProductsPane2.add(uploadButton);
         sampleUploadButton = new JButton("download upload sample");
-        sampleUploadButton.addActionListener(this);
+        sampleUploadButton.addActionListener((this));
         allProductsPane2.add(sampleUploadButton);
         allProductsPanel.setBackground(Color.lightGray);
         addProductsPanel.add(pn2, BorderLayout.NORTH);
@@ -252,6 +259,12 @@ public class Shop extends JFrame implements ActionListener {
             @Override
             public void mouseEntered(MouseEvent e) {
                 filComb();
+            }
+        });
+        c1.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                autoSearch(c1, String.valueOf(e.getKeyChar()));
             }
         });
         JLabel lbQ = new JLabel("Quantity");
@@ -549,6 +562,12 @@ public class Shop extends JFrame implements ActionListener {
                 filComb2();
             }
         });
+        c2.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                autoSearch(c2, String.valueOf(e.getKeyChar()));
+            }
+        });
         addB2 = new JButton("add");
         addB2.addActionListener((this));
         JLabel q2label = new JLabel("quantity");
@@ -756,7 +775,7 @@ public class Shop extends JFrame implements ActionListener {
         JLabel editUserPasswordLabel = new JLabel("Password");
         editUserPasswordLabel.setBounds(60, 105, 100, 20);
         editF.add(editUserPasswordLabel);
-        editUserPassword = new JTextField();
+        editUserPassword = new JPasswordField();
         editUserPassword.setBounds(180, 110, 100, 20);
         editF.add(editUserPassword);
 
@@ -779,14 +798,19 @@ public class Shop extends JFrame implements ActionListener {
 
                         Connection conn = getConnection();
                         Statement st = conn.createStatement();
-                        String sql = "SELECT * FROM users WHERE id = '" + usersTable.getValueAt(usersTable.getSelectedRow(), 0).toString() + "'";
+                        String sql = "SELECT * FROM users WHERE id = " + Integer.parseInt(usersTable.getValueAt(usersTable.getSelectedRow(), 0).toString());
                         ResultSet rs = st.executeQuery(sql);
                         if (rs.next()) {
                             editUserPassword.setText(rs.getString(3));
                         }
+                        conn.close();
+                        st.close();
                     } catch (SQLException ex) {
                         Logger.getLogger(Shop.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    
+                    
+                    
 
                 }
 
@@ -905,6 +929,12 @@ public class Shop extends JFrame implements ActionListener {
                 filComb3();
             }
         });
+        c3.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                autoSearch(c3, String.valueOf(e.getKeyChar()));
+            }
+        });
 
         JLabel sellerLabel = new JLabel("Seller");
         sellerLabel.setBounds(722, 50, 100, 20);
@@ -920,6 +950,12 @@ public class Shop extends JFrame implements ActionListener {
             @Override
             public void mouseClicked(MouseEvent e) {
                 filComb4();
+            }
+        });
+        c4.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                autoSearch(c4, String.valueOf(e.getKeyChar()));
             }
         });
 
@@ -1055,6 +1091,12 @@ public class Shop extends JFrame implements ActionListener {
                 filComb5();
             }
         });
+        c5.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                autoSearch(c5, String.valueOf(e.getKeyChar()));
+            }
+        });
 
         JLabel restockerLabel = new JLabel("Restocker");
         restockerLabel.setBounds(722, 50, 100, 20);
@@ -1070,6 +1112,12 @@ public class Shop extends JFrame implements ActionListener {
             @Override
             public void mouseClicked(MouseEvent e) {
                 filComb6();
+            }
+        });
+        c6.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                autoSearch(c6, String.valueOf(e.getKeyChar()));
             }
         });
         invoiceTextFld = new JTextField();
@@ -1201,6 +1249,12 @@ public class Shop extends JFrame implements ActionListener {
                 filComb7();
             }
         });
+        c7.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                autoSearch(c7, String.valueOf(e.getKeyChar()));
+            }
+        });
         showExpensesButton = new JButton("Show report");
         showExpensesButton.addActionListener((this));
         showExpensesButton.setBounds(620, 140, 120, 20);
@@ -1316,6 +1370,12 @@ public class Shop extends JFrame implements ActionListener {
                 filComb8();
             }
         });
+        c8.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                autoSearch(c8, String.valueOf(e.getKeyChar()));
+            }
+        });
       
         JLabel disparityL = new JLabel("Dipsparity Ksh");
         disparityL.setBounds(500, 15, 200, 20);
@@ -1391,6 +1451,12 @@ public class Shop extends JFrame implements ActionListener {
             @Override
             public void mouseClicked(MouseEvent e) {
                 filComb9();
+            }
+        });
+        c9.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                autoSearch(c9, String.valueOf(e.getKeyChar()));
             }
         });
         showDisparitiesButton = new JButton("Show report");
@@ -1472,12 +1538,38 @@ public class Shop extends JFrame implements ActionListener {
         editDisparityButton.setBounds(10, 245, 200, 20);
         editDisparityButton.addActionListener((this));
         editDisparityPanel.add(editDisparityButton);
+        //settings window
+        JPanel settingsPanel = new JPanel();
+        settingsPanel.setLayout(null);
+        Border settingsTitle = BorderFactory.createTitledBorder("system settings");
+        settingsPanel.setBorder(settingsTitle);
+        
+        JLabel setNameLabel = new JLabel("Business Name");
+        setNameLabel.setBounds(200, 15, 200, 20);
+        settingsPanel.add(setNameLabel);
+        business_name = new JTextField();
+        business_name.setBounds(200, 40, 200, 20);
+        settingsPanel.add(business_name);
+
+        JLabel setReceiptLabel = new JLabel("Receipt Title");
+        setReceiptLabel .setBounds(500, 15, 200, 20);
+        settingsPanel.add(setReceiptLabel );
+        receipt_title = new JTextField();
+        receipt_title.setBounds(500, 40, 200, 20);
+        settingsPanel.add( receipt_title);
+        editSettingsB = new JButton("Edit");
+        editSettingsB.setBounds(350, 80, 200, 20);
+        editSettingsB.addActionListener((this));
+        settingsPanel.add(editSettingsB);
+        if (isAuthenticated && role.equalsIgnoreCase("admin")) {
+            tabs.add("Settings ", settingsPanel);
+        }
         
         
         
         jm.add(tabs);
 
-        jm.setTitle("CLUB ZION POS");
+        jm.setTitle(businessName);
         if (isAuthenticated && !role.equalsIgnoreCase("admin")) {
           jm.setSize(800, 650);
         }
@@ -1526,6 +1618,68 @@ public class Shop extends JFrame implements ActionListener {
         return conn;
     }
     
+    
+    
+//get settings
+ 
+public void getSettings() {
+        try {
+            Connection conn = getConnection();
+            Statement st = conn.createStatement();
+            String sql = "SELECT name,title FROM settings";
+            ResultSet rs = st.executeQuery(sql);
+
+            while (rs.next()) {
+                recieptTitle = rs.getString("title");
+                businessName = rs.getString("name");
+                receipt_title.setText(recieptTitle);
+                business_name.setText(businessName);
+                jm.setTitle(businessName);
+                
+            }
+
+            st.close();
+            conn.close();
+
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+
+    }    
+    
+//edit settings
+ private void editSettings(){
+   if(business_name.getText().trim().isEmpty() ||receipt_title.getText().trim().isEmpty()){
+        JOptionPane.showMessageDialog(this, "ALl fields required", "Error!", JOptionPane.ERROR_MESSAGE);
+         return;
+        } 
+            try {
+            Connection conn = getConnection();
+            Statement st = conn.createStatement();
+            //delete existing first
+            String deleteQuery = "DELETE FROM settings ";
+            int rowsAffected = st.executeUpdate(deleteQuery);
+            //create new 
+            if(rowsAffected>0){
+            PreparedStatement insert = conn.prepareStatement("insert into settings (name,title)values(?,?)");
+                    insert.setString(1, business_name.getText());
+                    insert.setString(2, receipt_title.getText());
+                    insert.executeUpdate();
+                    JOptionPane.showMessageDialog(this, "Settings Successfuly Updated");
+                    insert.close(); 
+            }
+            st.close();
+            conn.close();
+            getSettings();
+            
+
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+   
+   
+   
+ }
     
  //add disparity
     //add expense
@@ -1939,10 +2093,15 @@ private void saveSampleCsv() {
                 PreparedStatement preparedStatement = conn.prepareStatement(query);
                 preparedStatement.setInt(1, Integer.parseInt(searchItem));
                 rs = preparedStatement.executeQuery();
-            } else {
-                String query = "SELECT * FROM products WHERE name LIKE ?";
+            } else {//case sensitive
+//                String query = "SELECT * FROM products WHERE name LIKE ?";
+//                PreparedStatement preparedStatement = conn.prepareStatement(query);
+//                preparedStatement.setString(1, "%" + searchItem + "%");
+//                rs = preparedStatement.executeQuery();
+                 //case insesitive
+                String query = "SELECT * FROM products WHERE UPPER(name) LIKE UPPER(?)";
                 PreparedStatement preparedStatement = conn.prepareStatement(query);
-                preparedStatement.setString(1, "%" + searchItem + "%");
+                preparedStatement.setString(1, "%" + searchItem.toUpperCase() + "%");
                 rs = preparedStatement.executeQuery();
             }
 
@@ -2014,6 +2173,18 @@ public boolean searchByName(String sname) {
 
     
 
+
+private void autoSearch(JComboBox<String> comboBox, String searchTerm) {
+        // Select the item that starts with the entered key (case-insensitive)
+        searchTerm = searchTerm.toLowerCase();
+        for (int i = 0; i < comboBox.getItemCount(); i++) {
+            String item = comboBox.getItemAt(i).toLowerCase();
+            if (item.startsWith(searchTerm)) {
+                comboBox.setSelectedIndex(i);
+                return;
+            }
+        }
+    }
 
 
     //select products 
@@ -2433,6 +2604,7 @@ public boolean searchByName(String sname) {
 
 // Search on CRUD products table
     public void searchCrudProductsTable() {
+        
 //        if (srchFld.getText().equals("") || srchFld.getText().equalsIgnoreCase("name or id")) {
 //            JOptionPane.showMessageDialog(this, "You must enter the name or id of the product!", "Error!", JOptionPane.ERROR_MESSAGE);
 //            return; // Exit the method if search input is empty or has a placeholder
@@ -2453,9 +2625,10 @@ public boolean searchByName(String sname) {
                 preparedStatement.setInt(1, Integer.parseInt(searchItem));
                 rs = preparedStatement.executeQuery();
             } else {
-                String query = "SELECT * FROM products WHERE name LIKE ?";
+                //case insensitive
+                String query = "SELECT * FROM products WHERE UPPER(name) LIKE UPPER(?)";
                 PreparedStatement preparedStatement = conn.prepareStatement(query);
-                preparedStatement.setString(1, "%" + searchItem + "%");
+                preparedStatement.setString(1, "%" + searchItem.toUpperCase() + "%");
                 rs = preparedStatement.executeQuery();
             }
 
@@ -2554,7 +2727,7 @@ public boolean searchByName(String sname) {
                             JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                     if (response1 == JOptionPane.YES_OPTION) {
                         model.addRow(new Object[]{"", "", "", "Sum Total", colSum(catTable, 4), "", ""});
-                        printTable(catTable);
+                        printReceipt(catTable);
                     }
                     conn.close();
                     model.setRowCount(0);
@@ -2804,6 +2977,66 @@ public boolean searchByName(String sname) {
 }
 
 
+ private  void printReceipt(JTable table) {
+    try {
+        PrinterJob printerJob = PrinterJob.getPrinterJob();
+        printerJob.setPrintable((graphics, pageFormat, pageIndex) -> {
+            if (pageIndex > 0) {
+                return Printable.NO_SUCH_PAGE;
+            }
+
+            Graphics2D g2d = (Graphics2D) graphics;
+            g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+
+            // Set the business name as the title
+            String businessName = "["+ recieptTitle +"]";
+            Font titleFont = new Font("Arial", Font.BOLD, 14);
+            g2d.setFont(titleFont);
+            g2d.drawString(businessName, 20, 20);
+
+            // Set headers
+            String headers = String.format("%-20s %-10s %-10s", "Product", "Quantity", "Total Ksh");
+            Font headerFont = new Font("Arial", Font.PLAIN, 10);
+            g2d.setFont(headerFont);
+            g2d.drawString(headers, 20, 40);
+
+            // Assuming column indices for Name, Quantity, and Total Ksh are 1, 3, and 4
+            int nameColumn = 1;
+            int quantityColumn = 3;
+            int totalKshColumn = 4;
+
+            int rowHeight = table.getRowHeight();
+            int yPosition = 60;
+
+            for (int row = 0; row < table.getRowCount(); row++) {
+                String name = table.getValueAt(row, nameColumn).toString();
+                String quantity = table.getValueAt(row, quantityColumn).toString();
+                String totalKsh = table.getValueAt(row, totalKshColumn).toString();
+
+                String line = String.format("%-20s %-10s %-10s", name, quantity, totalKsh);
+                g2d.drawString(line, 20, yPosition);
+                yPosition += rowHeight;
+            }
+
+            // Set the footer with seller name and date
+            String sellerName = "["+logUser+"]";
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            String currentDate = dateFormat.format(new Date());
+            String footer = String.format("Sold by %s on %s", sellerName, currentDate);
+            g2d.drawString(footer, 20, yPosition);
+
+            return Printable.PAGE_EXISTS;
+        });
+
+        if (printerJob.printDialog()) {
+            printerJob.print();
+        }
+    } catch (PrinterException e) {
+        e.printStackTrace();
+    }
+}
+
+
     // Export the JTable to an Excel file
     public void exportTableToExcel(JTable table) throws FileNotFoundException, IOException {
         
@@ -2889,7 +3122,7 @@ public boolean searchByName(String sname) {
             try {
                 Connection conn = getConnection();
                 Statement st = conn.createStatement();
-                String sql = "UPDATE users set username='" + editUserName.getText() + "', password='" + editUserPassword.getText() + "', role='" + editUserRole.getText() + "'  WHERE id =" + Integer.valueOf(usersTable.getValueAt(usersTable.getSelectedRow(), 0).toString());
+                String sql = "UPDATE users set username='" + editUserName.getText() + "', password='" + String.valueOf(editUserPassword.getPassword()) + "', role='" + editUserRole.getText() + "'  WHERE id =" + Integer.valueOf(usersTable.getValueAt(usersTable.getSelectedRow(), 0).toString());
                 st.executeUpdate(sql);
                 JOptionPane.showMessageDialog(this, "User Successfuly Updated!");
                 editUserName.setText("");
@@ -3647,6 +3880,10 @@ public boolean searchByName(String sname) {
         
         if(e.getSource()==showExpensesButton){
         exspensesTableReport();
+        }
+        
+        if(e.getSource()==editSettingsB){
+          editSettings();
         }
         
     }
