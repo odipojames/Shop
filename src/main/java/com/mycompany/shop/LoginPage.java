@@ -3,14 +3,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.shop;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import javax.swing.border.Border;
 import java.sql.*;
 import static com.mycompany.shop.Shop.*;
 
@@ -19,6 +11,8 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.ResultSet;
@@ -45,6 +39,7 @@ public class LoginPage  implements ActionListener {
        JButton button;
        JPasswordField Password;
        JFrame frame;
+       public static String  title = "LOGIN TO POS";
 
     LoginPage(){
         JDialog.setDefaultLookAndFeelDecorated(true);
@@ -54,7 +49,10 @@ public class LoginPage  implements ActionListener {
         panel.setLayout(null);
         panel.setBorder(blackline);
         frame = new JFrame();
-        frame.setTitle("LOGIN TO POS");
+        
+        //load title
+        getTitle();
+        frame.setTitle(title);
         
         
         
@@ -79,14 +77,55 @@ public class LoginPage  implements ActionListener {
         // Username TextField constructor
         username = new JTextField();
         username.setBounds(520, 130, 193, 28);
+        username.addKeyListener(new KeyListener(){
+          @Override
+            public void keyPressed(KeyEvent e) {
+                // Check if the pressed key is Enter
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    login();
+                }
+                
+            }
+            
+            @Override
+    public void keyReleased(KeyEvent e) {
+        // Add an empty implementation
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // Add an empty implementation
+    }
+        });
         panel.add(username);
         // Password Label constructor
         password1 = new JLabel("Password");
         password1.setBounds(520, 160, 70, 20);
+        
         panel.add(password1);
         // Password TextField
         Password = new JPasswordField();
         Password.setBounds(520, 190, 193, 28);
+        Password.addKeyListener(new KeyListener(){
+          @Override
+            public void keyPressed(KeyEvent e) {
+                // Check if the pressed key is Enter
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    login();
+                }
+                
+            }
+            
+            @Override
+    public void keyReleased(KeyEvent e) {
+        // Add an empty implementation
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // Add an empty implementation
+    }
+        });
         panel.add(Password);
         
         // Button constructor
@@ -119,11 +158,30 @@ public class LoginPage  implements ActionListener {
 
     }
     
+    //getting title from settings table
+    public static void getTitle() {
+        try {
+            Connection conn = getConnection();
+            Statement st = conn.createStatement();
+            String sql = "SELECT name FROM settings";
+            ResultSet rs = st.executeQuery(sql);
+
+            while (rs.next()) {
+                title = rs.getString("name");  
+                
+            }
+            
+            st.close();
+            conn.close();
+
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+
+    } 
     
-    
-    
-    @Override
-    public void actionPerformed(ActionEvent e) {
+    //logitn 
+    public void login(){
     String Username = username.getText();
     String Password1 = String.valueOf(Password.getPassword());
      if(Username.equalsIgnoreCase("")|| Password1.equalsIgnoreCase("")){
@@ -137,7 +195,7 @@ public class LoginPage  implements ActionListener {
         String sql = "SELECT * FROM users WHERE username = '"+Username + "' AND  password = '"+Password1+"' ";
         ResultSet rs =  st.executeQuery(sql);
         if(rs.next()){
-         JOptionPane.showMessageDialog(null, "You'ved loged in successfuly!");
+         //JOptionPane.showMessageDialog(null, "You'ved loged in successfuly!");
          frame.dispose();
          Shop.logUser = Username;
          Shop.isAuthenticated = true;
@@ -166,6 +224,14 @@ public class LoginPage  implements ActionListener {
          
                
     }
+    }
+    
+    //action listeners
+    @Override
+    public void actionPerformed(ActionEvent e) {
+    if(e.getSource()==button) {
+     login();
+    }   
      
  }
     

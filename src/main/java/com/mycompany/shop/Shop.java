@@ -111,7 +111,8 @@ public class Shop extends JFrame implements ActionListener {
     String recieptTitle = "";
     String invoice_no ;
     
-
+  
+    
     Shop() {
         JDialog.setDefaultLookAndFeelDecorated(true);
 
@@ -1637,7 +1638,7 @@ public void getSettings() {
                 jm.setTitle(businessName);
                 
             }
-
+            
             st.close();
             conn.close();
 
@@ -1645,8 +1646,11 @@ public void getSettings() {
             System.out.print(e.getMessage());
         }
 
-    }    
+    }   
+
+
     
+
 //edit settings
  private void editSettings(){
    if(business_name.getText().trim().isEmpty() ||receipt_title.getText().trim().isEmpty()){
